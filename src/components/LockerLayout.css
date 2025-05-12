@@ -1,0 +1,110 @@
+.BMLayoutNoScroll {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 auto;
+}
+
+.BMLayoutSide {
+  flex: 1;
+}
+
+.BMLayoutModule {
+  display: flex;
+  flex-direction: row;
+}
+
+.BMLayoutColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+.BMLayoutColumnName {
+  text-align: center;
+  padding: 5px;
+  font-weight: bold;
+}
+
+.BMLayoutSlot {
+  padding: 2px;
+}
+
+.BMLayoutLocker {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  position: relative;
+}
+
+.BMLayoutLocker.outer {
+  width: 100%;
+  height: 100%;
+}
+
+.BMLayoutLocker .middle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.BMLayoutLocker .inner {
+  text-align: center;
+  width: 100%;
+}
+
+/* Locker sizes */
+.sizeA {
+  height: 40px;
+}
+
+.sizeB {
+  height: 60px;
+}
+
+.sizeC {
+  height: 80px;
+}
+
+/* Locker states */
+.lockerEmpty {
+  background-color: #f5f5f5;
+}
+
+.lockerInUse {
+  background-color: #e3f2fd;
+}
+
+.lockerOther {
+  background-color: #fff3e0;
+}
+
+.lockerserviceBox,
+.lockercontrollerBox {
+  background-color: #ffebee;
+}
+
+/* Package images */
+.BMLayoutParcel {
+  max-width: 80%;
+  max-height: 80%;
+  object-fit: contain;
+}
+
+/* Tooltip */
+.tooltip {
+  position: relative;
+}
+
+/* Column specific styles */
+.BMLayoutColumn-1,
+.BMLayoutColumn-2,
+.BMLayoutColumn-3,
+.BMLayoutColumn-4,
+.BMLayoutColumn-5,
+.BMLayoutColumn-6,
+.BMLayoutColumn-7,
+.BMLayoutColumn-8,
+.BMLayoutColumn-9,
+.BMLayoutColumn-10 {
+  margin: 0 5px;
+} 

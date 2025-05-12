@@ -1,0 +1,98 @@
+.locker-grid {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.column-headers {
+  display: flex;
+  margin-bottom: 1px;
+}
+
+.column-header {
+  flex: 1;
+  text-align: center;
+  font-weight: bold;
+  padding: 5px;
+}
+
+.grid-container {
+  display: flex;
+  border-top: 1px solid #ccc;
+  border-left: 1px solid #ccc;
+}
+
+.column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #ccc;
+}
+
+.locker {
+  border-bottom: 1px solid #ccc;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.locker.occupied {
+  background-color: #4CAF50;
+}
+
+.locker.empty {
+  background-color: white;
+}
+
+/* Locker sizes with correct ratios, including border in height */
+.locker.size-s {
+  height: 30px;
+}
+
+.locker.size-m {
+  height: 60px;
+}
+
+.locker.size-l {
+  height: 120px;
+}
+
+.package {
+  font-size: 20px;
+}
+
+.service-section {
+  display: flex;
+  flex-direction: column;
+  background-color: #9e9e9e;
+  color: white;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.service {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  border-bottom: 1px solid white;
+  box-sizing: border-box;
+}
+
+.steering {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  box-sizing: border-box;
+}
+
+.small-lockers {
+  display: flex;
+  flex-direction: column;
+} 
