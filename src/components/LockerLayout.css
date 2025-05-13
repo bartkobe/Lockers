@@ -78,6 +78,10 @@
   background-color: #fff3e0;
 }
 
+.lockerExpired {
+  background-color: #FFD700;  /* Changed to gold yellow */
+}
+
 .lockerserviceBox,
 .lockercontrollerBox {
   background-color: #ffebee;
