@@ -39,6 +39,8 @@ interface LockerConfig {
     dbStatus: LockerStatus;
     hasParcel: boolean;
   };
+  hasMultipleParcels?: boolean;
+  parcels?: string[];
 }
 
 interface ComparisonState {
@@ -56,6 +58,7 @@ interface LockerProps {
   onContextMenu: (event: React.MouseEvent, lockerId: string) => void;
   onClick: (event: React.MouseEvent, lockerId: string) => void;
   isSelected: boolean;
+  hasMultipleParcels?: boolean;
 }
 
 interface LockerDetails {
@@ -386,11 +389,30 @@ const SAMPLE_DETAILS: LockerDetails[] = [
   { label: 'Status Change Date (Parcel locker time)', value: '12-05-2025 17:12:42' }
 ];
 
+// Improve the TableHeader interface for grouped headers
+interface TableHeader {
+  lockerId: string;
+  parcelCode: string;
+  fullHeader: string;
+  isMultiParcel?: boolean;
+  parcelIndex?: number;
+  lockerBaseId?: string; // Original locker ID for multi-parcel items
+  parcelShortCode?: string; // Last few digits of parcel code for display
+}
+
+// Interface for grouped headers
+interface HeaderGroup {
+  baseId: string;
+  headers: TableHeader[];
+  colspan: number;
+}
+
 interface DetailsTableProps {
   detailsMap: Map<string, LockerDetails[]>;
   selectedLockers: string[];
 }
 
+// Update DetailsTable component to remove the extra row with parcel endings
 const DetailsTable: React.FC<DetailsTableProps> = ({ detailsMap, selectedLockers }) => {
   // Get all unique labels and ensure Pack Code is included
   const allLabels = new Set<string>();
@@ -406,14 +428,80 @@ const DetailsTable: React.FC<DetailsTableProps> = ({ detailsMap, selectedLockers
     return a.localeCompare(b);
   });
 
+  // Create an array of column headers that includes both locker ID and parcel number
+  const tableHeaders: TableHeader[] = [];
+  
+  // Group the selected lockers by their base locker ID
+  const lockerGroups: Record<string, string[]> = {};
+  
+  selectedLockers.forEach(lockerId => {
+    // Check if this is a multi-parcel item
+    if (lockerId.includes('-parcel-')) {
+      const baseId = lockerId.split('-parcel-')[0];
+      lockerGroups[baseId] = lockerGroups[baseId] || [];
+      lockerGroups[baseId].push(lockerId);
+    } else {
+      lockerGroups[lockerId] = lockerGroups[lockerId] || [];
+      lockerGroups[lockerId].push(lockerId);
+    }
+  });
+
+  // Create headers for each locker/parcel and organize them into groups
+  const headerGroups: HeaderGroup[] = [];
+  
+  Object.entries(lockerGroups).forEach(([baseId, lockerIds]) => {
+    const isMultiParcel = lockerIds.length > 1 || lockerIds[0].includes('-parcel-');
+    const groupHeaders: TableHeader[] = [];
+    
+    lockerIds.forEach((lockerId, index) => {
+      const details = detailsMap.get(lockerId) || [];
+      const parcelCodes = details.find(d => d.label === 'Pack Code')?.value || '';
+      
+      const header: TableHeader = { 
+        lockerId, 
+        parcelCode: parcelCodes,
+        fullHeader: baseId,
+        isMultiParcel,
+        parcelIndex: index,
+        lockerBaseId: baseId,
+        parcelShortCode: parcelCodes ? parcelCodes.substring(parcelCodes.length - 8) : ''
+      };
+      
+      groupHeaders.push(header);
+      tableHeaders.push(header);
+    });
+    
+    headerGroups.push({
+      baseId,
+      headers: groupHeaders,
+      colspan: groupHeaders.length
+    });
+  });
+
   return (
     <div className="details-table-container">
       <table className="details-table">
         <thead>
+          {/* Single row with merged headers */}
           <tr>
             <th className="attribute-header">Attribute</th>
-            {selectedLockers.map(lockerId => (
-              <th key={lockerId} className="value-header">{lockerId}</th>
+            {headerGroups.map((group) => (
+              group.headers.length > 1 ? (
+                <th 
+                  key={`group-${group.baseId}`} 
+                  colSpan={group.colspan} 
+                  className="merged-header merged-header-group"
+                >
+                  {group.baseId}
+                </th>
+              ) : (
+                <th 
+                  key={`single-${group.baseId}`} 
+                  className="value-header"
+                >
+                  {group.baseId}
+                </th>
+              )
             ))}
           </tr>
         </thead>
@@ -421,11 +509,18 @@ const DetailsTable: React.FC<DetailsTableProps> = ({ detailsMap, selectedLockers
           {sortedLabels.map((label) => (
             <tr key={label}>
               <td className="attribute-cell">{label}</td>
-              {selectedLockers.map(lockerId => {
-                const details = detailsMap.get(lockerId) || [];
+              {tableHeaders.map((header, idx) => {
+                const details = detailsMap.get(header.lockerId) || [];
                 const detail = details.find(d => d.label === label);
+                const isFirstInGroup = header.isMultiParcel && header.parcelIndex === 0;
+                const isLastInGroup = header.isMultiParcel && 
+                  headerGroups.find(g => g.baseId === header.lockerBaseId)?.headers.length === (header.parcelIndex || 0) + 1;
+                
                 return (
-                  <td key={lockerId} className="value-cell">
+                  <td 
+                    key={`${header.lockerId}-${idx}`} 
+                    className={`value-cell parcel-column ${isFirstInGroup ? 'group-start' : ''} ${isLastInGroup ? 'group-end' : ''}`}
+                  >
                     {detail?.value || '-'}
                   </td>
                 );
@@ -446,7 +541,8 @@ const Locker: React.FC<LockerProps> = ({
   lockerCode = '',
   onContextMenu,
   onClick,
-  isSelected
+  isSelected,
+  hasMultipleParcels = false
 }) => {
   if (isComparison && comparisonState) {
     return (
@@ -481,15 +577,20 @@ const Locker: React.FC<LockerProps> = ({
         data-tooltip={lockerCode}
       >
         {!isEmpty && (
-          <span className="package">📦</span>
+          <>
+            <span className="package">📦</span>
+            {hasMultipleParcels && (
+              <span className="package" style={{ marginLeft: '-5px', marginTop: '3px' }}>📦</span>
+            )}
+          </>
         )}
       </div>
     );
   }
 };
 
-// Helper function to generate random data
-const generateRandomData = (lockerId: string): LockerDetails[] => {
+// Update generateRandomData to handle multiple parcels
+const generateRandomData = (lockerId: string, parcelId?: string): LockerDetails[] => {
   const randomDate = () => {
     const date = new Date();
     date.setDate(date.getDate() + Math.floor(Math.random() * 30));
@@ -506,7 +607,7 @@ const generateRandomData = (lockerId: string): LockerDetails[] => {
   const randomPhone = () => `+48${Math.floor(Math.random() * 900000000 + 100000000)}`;
   const randomAmount = () => (Math.random() * 100).toFixed(2);
   const randomCode = () => Math.floor(Math.random() * 900000 + 100000).toString();
-  const randomParcelCode = () => `66340086858${Math.floor(Math.random() * 10000000000000).toString().padStart(13, '0')}`;
+  const randomParcelCode = () => parcelId || `66340086858${Math.floor(Math.random() * 10000000000000).toString().padStart(13, '0')}`;
   const randomStatus = () => {
     const statuses = ['CustomerStored', 'ReadyToPickup', 'Delivered', 'InTransit', 'ReturnPending'];
     return statuses[Math.floor(Math.random() * statuses.length)];
@@ -580,119 +681,7 @@ const LockerGrid: React.FC = () => {
   // Create a ref to store the generated data for each locker
   const lockerDetailsRef = useRef<Map<string, LockerDetails[]>>(new Map());
 
-  // Get or generate details for a locker
-  const getLockerDetails = useCallback((lockerId: string) => {
-    if (!lockerDetailsRef.current.has(lockerId)) {
-      lockerDetailsRef.current.set(lockerId, generateRandomData(lockerId));
-    }
-    return lockerDetailsRef.current.get(lockerId) || [];
-  }, []);
-
-  const handleContextMenu = useCallback((event: React.MouseEvent, lockerId: string) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setContextMenu({ x: event.clientX, y: event.clientY, lockerId });
-  }, []);
-
-  const handleLockerClick = useCallback((event: React.MouseEvent, lockerId: string) => {
-    event.preventDefault();
-    
-    if (event.ctrlKey || event.metaKey) {
-      // Multi-select behavior
-      setSelectedLockers(prev => {
-        const newSelection = new Set(prev);
-        if (prev.has(lockerId)) {
-          newSelection.delete(lockerId);
-        } else {
-          newSelection.add(lockerId);
-          // Generate data for the newly selected locker
-          getLockerDetails(lockerId);
-        }
-        return newSelection;
-      });
-      setShowDetailsTable(true);
-    } else {
-      // Single select behavior
-      // If only one locker is selected and it's the same one being clicked, deselect it
-      if (selectedLockers.size === 1 && selectedLockers.has(lockerId)) {
-        setSelectedLockers(new Set());
-        setShowDetailsTable(false);
-      } else {
-        setSelectedLockers(new Set([lockerId]));
-        getLockerDetails(lockerId);
-        setShowDetailsTable(true);
-      }
-    }
-  }, [getLockerDetails, selectedLockers]);
-
-  // Clear selection when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (!target.closest('.locker') && !target.closest('.details-table-container')) {
-        setSelectedLockers(new Set());
-        setShowDetailsTable(false);
-      }
-    };
-
-    document.addEventListener('click', handleClickOutside);
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    };
-  }, []);
-
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-  };
-
-  const handleModalSave = () => {
-    // Handle save logic here
-    setIsModalOpen(false);
-  };
-
-  const handleChangeBox = useCallback(() => {
-    setIsModalOpen(true);
-  }, []);
-
-  const handleRemoveParcel = useCallback(() => {
-    setIsRemoveModalOpen(true);
-  }, []);
-
-  const handleRemoveModalClose = useCallback(() => {
-    setIsRemoveModalOpen(false);
-  }, []);
-
-  const handleRemoveModalSubmit = useCallback((reason: string) => {
-    console.log('Removing parcels with reason:', reason);
-    setIsRemoveModalOpen(false);
-  }, []);
-
-  const handleBlockWithClaim = useCallback(() => {
-    setIsBlockClaimModalOpen(true);
-  }, []);
-
-  const handleBlockClaimModalClose = useCallback(() => {
-    setIsBlockClaimModalOpen(false);
-  }, []);
-
-  const handleBlockClaimSubmit = useCallback(() => {
-    console.log('Blocking parcel with claim');
-    setIsBlockClaimModalOpen(false);
-  }, []);
-
-  const handleChangeExpiration = useCallback(() => {
-    setIsExpirationModalOpen(true);
-  }, []);
-
-  const handleExpirationModalClose = useCallback(() => {
-    setIsExpirationModalOpen(false);
-  }, []);
-
-  const handleExpirationModalSave = useCallback((days: number) => {
-    console.log('Changing expiration time to', days, 'days');
-    setIsExpirationModalOpen(false);
-  }, []);
-
+  // Define columnLayouts first before using it in getLockerDetails
   const columnLayouts: Record<ColumnName, LockerConfig[]> = {
     '4L': [
       { 
@@ -759,7 +748,11 @@ const LockerGrid: React.FC = () => {
       { size: 'L' }
     ],
     '1L': [
-      { size: 'L' },
+      { 
+        size: 'L', 
+        hasMultipleParcels: true,
+        parcels: ['6634008685863000131638', '6634008685863000265497'] 
+      },
       { size: 'S' },
       { size: 'S' },
       { size: 'S' },
@@ -886,6 +879,224 @@ const LockerGrid: React.FC = () => {
     ]
   };
 
+  // Get or generate details for a locker
+  const getLockerDetails = useCallback((lockerId: string) => {
+    // Fix type error by checking if the locker ID is valid before indexing
+    const colId = lockerId.slice(0, 2) as ColumnName;
+    const rowIdx = parseInt(lockerId.slice(2)) - 1;
+    
+    // Check if this is a locker with multiple parcels
+    const lockerConfig = columnLayouts[colId]?.[rowIdx]; 
+    
+    if (lockerConfig?.hasMultipleParcels && lockerConfig.parcels?.length) {
+      // If we already have the details, return them
+      if (lockerDetailsRef.current.has(lockerId)) {
+        return lockerDetailsRef.current.get(lockerId) || [];
+      }
+      
+      // For multiple parcels, we'll create a special merged view
+      // That includes data from all parcels
+      const allParcelDetails = [];
+      
+      // Generate details for the first parcel
+      const firstParcelDetails = generateRandomData(lockerId, lockerConfig.parcels[0]);
+      allParcelDetails.push(firstParcelDetails);
+      
+      // Store separate entries for each parcel in the locker
+      for (let i = 0; i < lockerConfig.parcels.length; i++) {
+        const parcelId = lockerConfig.parcels[i];
+        const parcelKey = `${lockerId}-parcel-${i+1}`;
+        const parcelDetails = generateRandomData(lockerId, parcelId);
+        lockerDetailsRef.current.set(parcelKey, parcelDetails);
+        
+        // For the first parcel, we'll use it as the locker's main details
+        if (i === 0) {
+          lockerDetailsRef.current.set(lockerId, parcelDetails);
+        } else {
+          // For additional parcels, add them to the visible columns
+          const parcelInfo = { 
+            lockerId: parcelKey, 
+            parcelCode: parcelId 
+          };
+          allParcelDetails.push(parcelDetails);
+        }
+      }
+      
+      return firstParcelDetails;
+    }
+    
+    // Normal case for a single parcel
+    if (!lockerDetailsRef.current.has(lockerId)) {
+      lockerDetailsRef.current.set(lockerId, generateRandomData(lockerId));
+    }
+    return lockerDetailsRef.current.get(lockerId) || [];
+  }, [columnLayouts]);
+
+  const handleContextMenu = useCallback((event: React.MouseEvent, lockerId: string) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setContextMenu({ x: event.clientX, y: event.clientY, lockerId });
+  }, []);
+
+  // Update handleLockerClick to ensure clicking a selected locker unselects it
+  const handleLockerClick = useCallback((event: React.MouseEvent, lockerId: string) => {
+    event.preventDefault();
+    
+    // Fix type error by checking if the locker ID is valid before indexing
+    const colId = lockerId.slice(0, 2) as ColumnName;
+    const rowIdx = parseInt(lockerId.slice(2)) - 1;
+    
+    // Check if this is a locker with multiple parcels
+    const lockerConfig = columnLayouts[colId]?.[rowIdx];
+    const hasMultipleParcels = lockerConfig?.hasMultipleParcels && lockerConfig.parcels?.length;
+    
+    // Helper function to clear all related parcels
+    const clearRelatedParcels = (id: string) => {
+      const baseId = id.includes('-parcel-') ? id.split('-parcel-')[0] : id;
+      const newSelection = new Set<string>();
+      
+      // Keep any lockers that aren't part of the current selection
+      selectedLockers.forEach(selectedId => {
+        if (!selectedId.startsWith(baseId)) {
+          newSelection.add(selectedId);
+        }
+      });
+      
+      return newSelection;
+    };
+    
+    if (event.ctrlKey || event.metaKey) {
+      // Multi-select behavior
+      setSelectedLockers(prev => {
+        const newSelection = new Set(prev);
+        if (prev.has(lockerId)) {
+          // Remove this locker and any of its parcels
+          return clearRelatedParcels(lockerId);
+        } else {
+          // Add this locker
+          newSelection.add(lockerId);
+          // Generate data for the newly selected locker
+          getLockerDetails(lockerId);
+          
+          // For multiple parcels, add entries for each parcel
+          if (hasMultipleParcels) {
+            for (let i = 1; i < (lockerConfig?.parcels?.length || 0); i++) {
+              const parcelKey = `${lockerId}-parcel-${i+1}`;
+              // Make sure we have details for this parcel
+              if (!lockerDetailsRef.current.has(parcelKey)) {
+                lockerDetailsRef.current.set(
+                  parcelKey, 
+                  generateRandomData(lockerId, lockerConfig?.parcels?.[i])
+                );
+              }
+              newSelection.add(parcelKey);
+            }
+          }
+        }
+        return newSelection;
+      });
+      setShowDetailsTable(true);
+    } else {
+      // Single select behavior
+      // If this locker or any of its parcels is already selected, deselect it
+      if (selectedLockers.has(lockerId) || 
+          (hasMultipleParcels && Array.from(selectedLockers).some(id => id.startsWith(lockerId)))) {
+        setSelectedLockers(new Set());
+        setShowDetailsTable(false);
+      } else {
+        // Select only this locker (and its parcels if it has multiple)
+        const newSelection = new Set([lockerId]);
+        getLockerDetails(lockerId);
+        
+        // For multiple parcels, add entries for each parcel
+        if (hasMultipleParcels) {
+          for (let i = 1; i < (lockerConfig?.parcels?.length || 0); i++) {
+            const parcelKey = `${lockerId}-parcel-${i+1}`;
+            // Make sure we have details for this parcel
+            if (!lockerDetailsRef.current.has(parcelKey)) {
+              lockerDetailsRef.current.set(
+                parcelKey, 
+                generateRandomData(lockerId, lockerConfig?.parcels?.[i])
+              );
+            }
+            newSelection.add(parcelKey);
+          }
+        }
+        
+        setSelectedLockers(newSelection);
+        setShowDetailsTable(true);
+      }
+    }
+  }, [getLockerDetails, selectedLockers, columnLayouts]);
+
+  // Clear selection when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.locker') && !target.closest('.details-table-container')) {
+        setSelectedLockers(new Set());
+        setShowDetailsTable(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleModalSave = () => {
+    // Handle save logic here
+    setIsModalOpen(false);
+  };
+
+  const handleChangeBox = useCallback(() => {
+    setIsModalOpen(true);
+  }, []);
+
+  const handleRemoveParcel = useCallback(() => {
+    setIsRemoveModalOpen(true);
+  }, []);
+
+  const handleRemoveModalClose = useCallback(() => {
+    setIsRemoveModalOpen(false);
+  }, []);
+
+  const handleRemoveModalSubmit = useCallback((reason: string) => {
+    console.log('Removing parcels with reason:', reason);
+    setIsRemoveModalOpen(false);
+  }, []);
+
+  const handleBlockWithClaim = useCallback(() => {
+    setIsBlockClaimModalOpen(true);
+  }, []);
+
+  const handleBlockClaimModalClose = useCallback(() => {
+    setIsBlockClaimModalOpen(false);
+  }, []);
+
+  const handleBlockClaimSubmit = useCallback(() => {
+    console.log('Blocking parcel with claim');
+    setIsBlockClaimModalOpen(false);
+  }, []);
+
+  const handleChangeExpiration = useCallback(() => {
+    setIsExpirationModalOpen(true);
+  }, []);
+
+  const handleExpirationModalClose = useCallback(() => {
+    setIsExpirationModalOpen(false);
+  }, []);
+
+  const handleExpirationModalSave = useCallback((days: number) => {
+    console.log('Changing expiration time to', days, 'days');
+    setIsExpirationModalOpen(false);
+  }, []);
+
   const columns: ColumnName[] = ['4L', '3L', '2L', '1L', 'MID', '1R', '2R', '3R', '4R', '5R'];
   
   return (
@@ -948,6 +1159,7 @@ const LockerGrid: React.FC = () => {
                         onContextMenu={handleContextMenu}
                         onClick={handleLockerClick}
                         isSelected={selectedLockers.has(lockerCode)}
+                        hasMultipleParcels={locker.hasMultipleParcels}
                       />
                     );
                   })

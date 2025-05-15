@@ -312,43 +312,32 @@ const Legend: React.FC = () => {
             <div className="refresh-tooltip">Check Connection with Router (Ctrl+Shift+T)</div>
           )}
         </button>
+        <div className="button-placeholder"></div>
       </div>
 
       <div className="empty-container">
-        <table className="info-table">
-          <tbody>
-            <tr className="info-header">
-              <td>Temperature</td>
-            </tr>
-            <tr className="info-value">
-              <td>24°</td>
-            </tr>
-            <tr className="info-header">
-              <td>Humidity</td>
-            </tr>
-            <tr className="info-value">
-              <td>-</td>
-            </tr>
-            <tr className="info-header">
-              <td>Card Ac.</td>
-            </tr>
-            <tr className="info-value">
-              <td>Offline</td>
-            </tr>
-            <tr className="info-header">
-              <td>R Printer</td>
-            </tr>
-            <tr className="info-value">
-              <td>Error</td>
-            </tr>
-            <tr className="info-header">
-              <td>L Printer</td>
-            </tr>
-            <tr className="info-value">
-              <td>-</td>
-            </tr>
-          </tbody>
-        </table>
+        <div className="info-table">
+          <div className="info-pair">
+            <div className="info-header">Temperature</div>
+            <div className="info-value status-ok">24°</div>
+          </div>
+          <div className="info-pair">
+            <div className="info-header">Humidity</div>
+            <div className="info-value">-</div>
+          </div>
+          <div className="info-pair">
+            <div className="info-header">Card Ac.</div>
+            <div className="info-value status-offline">Offline</div>
+          </div>
+          <div className="info-pair">
+            <div className="info-header">R Printer</div>
+            <div className="info-value status-error">Error</div>
+          </div>
+          <div className="info-pair">
+            <div className="info-header">L Printer</div>
+            <div className="info-value">-</div>
+          </div>
+        </div>
       </div>
       
       <div className="legend-container">
@@ -367,6 +356,7 @@ const Legend: React.FC = () => {
                   style={{ backgroundColor: status.color }}
                   aria-hidden="true"
                 />
+                <span className="legend-text">{status.name}</span>
                 {hoveredStatus === status.name && (
                   <div className="legend-tooltip">{status.name}</div>
                 )}

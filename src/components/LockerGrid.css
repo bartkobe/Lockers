@@ -66,6 +66,7 @@ html {
   padding: 1px;
   cursor: pointer;
   user-select: none;
+  flex-wrap: wrap;
 }
 
 .locker[data-tooltip] {
@@ -174,6 +175,7 @@ html {
 
 .package {
   font-size: 14px;
+  position: relative;
 }
 
 .service-section {
@@ -373,7 +375,33 @@ textarea.form-control {
 .details-table .value-header {
   color: #495057;
   font-weight: 600;
-  padding-left: 1rem;
+  padding: 0.6rem 1rem;
+  position: relative;
+  border-left: 1px solid #f1f3f5;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.details-table .value-header:first-of-type {
+  border-left: none;
+}
+
+/* Add a special style for parcel number columns */
+.details-table .value-header[data-parcel-column="true"] {
+  background-color: #f8f9fa;
+}
+
+/* Style for multi-parcel header */
+.details-table .multi-parcel-indicator {
+  font-size: 0.65rem;
+  color: #6c757d;
+  font-weight: normal;
+  display: block;
+  margin-top: 2px;
+}
+
+/* Add gradient to better show multiple parcels from the same locker */
+.multi-parcel-column {
+  background: linear-gradient(to right, rgba(244, 248, 251, 0.5), transparent);
 }
 
 .details-table td {
@@ -395,6 +423,12 @@ textarea.form-control {
   max-width: 190px;
   overflow: hidden;
   text-overflow: ellipsis;
+  position: relative;
+  border-left: 1px solid #f1f3f5;
+}
+
+.details-table .value-cell:first-of-type {
+  border-left: none;
 }
 
 .details-table tbody tr:last-child td {
@@ -567,4 +601,77 @@ textarea.form-control {
   flex-direction: column;
   align-items: flex-start;
   margin-top: 2.5rem;
+}
+
+/* Add styles for merged headers */
+.details-table .merged-header {
+  text-align: center;
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #495057;
+  padding: 0.6rem 0.5rem;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.details-table .locker-cell {
+  position: relative;
+  padding-top: 0.7rem;
+}
+
+.details-table .parcel-subheader {
+  padding: 0.3rem 0.5rem;
+  background-color: rgba(244, 248, 251, 0.5);
+  font-size: 0.7rem;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+  border-left: 1px solid #e9ecef;
+  font-weight: 500;
+}
+
+.details-table .parcel-subheader:first-of-type {
+  border-left: none;
+}
+
+.details-table .group-start {
+  border-left: 1px solid #dee2e6;
+}
+
+.details-table .group-end {
+  border-right: 1px solid #dee2e6;
+}
+
+.details-table thead tr {
+  position: relative;
+}
+
+/* Create connector line between header cells */
+.details-table .merged-header-group {
+  border-bottom: 2px solid #dee2e6;
+  border-left: 1px solid #dee2e6;
+  border-right: 1px solid #dee2e6;
+  background-color: #f8f9fa;
+}
+
+.details-table .value-cell.parcel-column {
+  background-color: rgba(244, 248, 251, 0.3);
+  position: relative;
+}
+
+/* Enhanced visual separation between parcels */
+.details-table .value-cell.group-start {
+  border-left: 1px solid #dee2e6;
+}
+
+.details-table .value-cell.group-end {
+  border-right: 1px solid #dee2e6;
+}
+
+/* Add subtle indication for multi-parcel cells */
+.details-table .value-cell.parcel-column:not(.group-start):not(.group-end)::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  border-right: 1px dashed rgba(0, 0, 0, 0.1);
 }
