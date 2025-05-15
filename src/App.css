@@ -1,0 +1,64 @@
+.app-header {
+  padding: 1.5rem 2rem;
+  background: white;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.header-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #212529;
+  font-family: var(--font-primary);
+  letter-spacing: -0.01em;
+}
+
+.locker-id {
+  font-weight: 700;
+  color: #007bff;
+}
+
+.locker-attributes {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-size: 0.875rem;
+  color: #495057;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.attributes-group {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding-right: 1.5rem;
+  border-right: 1px solid #e9ecef;
+}
+
+.attributes-group:last-child {
+  padding-right: 0;
+  border-right: none;
+}
+
+.attribute {
+  display: flex;
+  gap: 0.375rem;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
+.attribute-label {
+  font-weight: 500;
+  color: #6c757d;
+}
+
+.attribute-value {
+  color: #212529;
+} 

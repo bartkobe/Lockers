@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import './LockerGrid.css';
+import Legend from './Legend';
 
 type LockerSize = 'S' | 'M' | 'L';
 type ColumnName = '4L' | '3L' | '2L' | '1L' | 'MID' | '1R' | '2R' | '3R' | '4R' | '5R';
@@ -386,39 +387,53 @@ const SAMPLE_DETAILS: LockerDetails[] = [
 ];
 
 interface DetailsTableProps {
-  details: LockerDetails[];
+  detailsMap: Map<string, LockerDetails[]>;
+  selectedLockers: string[];
 }
 
-const DetailsTable: React.FC<DetailsTableProps> = ({ details }) => {
-  // Split details into two arrays for two columns
-  const midpoint = Math.ceil(details.length / 2);
-  const leftColumnDetails = details.slice(0, midpoint);
-  const rightColumnDetails = details.slice(midpoint);
+const DetailsTable: React.FC<DetailsTableProps> = ({ detailsMap, selectedLockers }) => {
+  // Get all unique labels and ensure Pack Code is included
+  const allLabels = new Set<string>();
+  selectedLockers.forEach(lockerId => {
+    const details = detailsMap.get(lockerId) || [];
+    details.forEach(detail => allLabels.add(detail.label));
+  });
+
+  // Sort labels with Pack Code first, then alphabetically
+  const sortedLabels = Array.from(allLabels).sort((a, b) => {
+    if (a === 'Pack Code') return -1;
+    if (b === 'Pack Code') return 1;
+    return a.localeCompare(b);
+  });
 
   return (
     <div className="details-table-container">
-      <div className="details-table-grid">
-        <table className="details-table">
-          <tbody>
-            {leftColumnDetails.map((detail, index) => (
-              <tr key={index}>
-                <td>{detail.label}</td>
-                <td>{detail.value}</td>
-              </tr>
+      <table className="details-table">
+        <thead>
+          <tr>
+            <th className="attribute-header">Attribute</th>
+            {selectedLockers.map(lockerId => (
+              <th key={lockerId} className="value-header">{lockerId}</th>
             ))}
-          </tbody>
-        </table>
-        <table className="details-table">
-          <tbody>
-            {rightColumnDetails.map((detail, index) => (
-              <tr key={index}>
-                <td>{detail.label}</td>
-                <td>{detail.value}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          </tr>
+        </thead>
+        <tbody>
+          {sortedLabels.map((label) => (
+            <tr key={label}>
+              <td className="attribute-cell">{label}</td>
+              {selectedLockers.map(lockerId => {
+                const details = detailsMap.get(lockerId) || [];
+                const detail = details.find(d => d.label === label);
+                return (
+                  <td key={lockerId} className="value-cell">
+                    {detail?.value || '-'}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
@@ -556,7 +571,6 @@ const ChangeBoxModal: React.FC<ModalProps> = ({ isOpen, onClose, onSave, parcelN
 const LockerGrid: React.FC = () => {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; lockerId: string } | null>(null);
   const [selectedLockers, setSelectedLockers] = useState<Set<string>>(new Set());
-  const [selectedLockerForDetails, setSelectedLockerForDetails] = useState<string | null>(null);
   const [showDetailsTable, setShowDetailsTable] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
@@ -591,41 +605,33 @@ const LockerGrid: React.FC = () => {
           newSelection.delete(lockerId);
         } else {
           newSelection.add(lockerId);
-        }
-        // Clear details table if more than one locker is selected
-        if (newSelection.size >= 2) {
-          setSelectedLockerForDetails(null);
-          setShowDetailsTable(false);
+          // Generate data for the newly selected locker
+          getLockerDetails(lockerId);
         }
         return newSelection;
       });
+      setShowDetailsTable(true);
     } else {
-      // Single select behavior - toggle details table
-      setSelectedLockers(new Set()); // Clear multi-selection when viewing details
-      if (selectedLockerForDetails === lockerId) {
-        // If clicking the same locker, toggle the details table
-        setShowDetailsTable(!showDetailsTable);
-        if (!showDetailsTable) {
-          setSelectedLockerForDetails(lockerId);
-        } else {
-          setSelectedLockerForDetails(null);
-        }
+      // Single select behavior
+      // If only one locker is selected and it's the same one being clicked, deselect it
+      if (selectedLockers.size === 1 && selectedLockers.has(lockerId)) {
+        setSelectedLockers(new Set());
+        setShowDetailsTable(false);
       } else {
-        // If clicking a different locker, show its details
-        setSelectedLockerForDetails(lockerId);
+        setSelectedLockers(new Set([lockerId]));
+        getLockerDetails(lockerId);
         setShowDetailsTable(true);
       }
     }
-  }, [selectedLockerForDetails, showDetailsTable]);
+  }, [getLockerDetails, selectedLockers]);
 
-  // Clear details when clicking outside
+  // Clear selection when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       if (!target.closest('.locker') && !target.closest('.details-table-container')) {
-        setSelectedLockerForDetails(null);
+        setSelectedLockers(new Set());
         setShowDetailsTable(false);
-        // Don't clear multi-selection when clicking outside
       }
     };
 
@@ -883,109 +889,112 @@ const LockerGrid: React.FC = () => {
   const columns: ColumnName[] = ['4L', '3L', '2L', '1L', 'MID', '1R', '2R', '3R', '4R', '5R'];
   
   return (
-    <>
-      <div className="locker-grid" onContextMenu={(e) => e.preventDefault()}>
-        <div className="column-headers">
-          {columns.map((col) => (
-            <div key={col} className="column-header">{col === 'MID' ? '' : col}</div>
-          ))}
-        </div>
-        <div className="grid-container">
-          {columns.map((col) => (
-            <div key={col} className="column">
-              {col === 'MID' ? (
-                <>
-                  <Locker 
-                    size="L" 
-                    lockerCode="MID1" 
-                    onContextMenu={handleContextMenu}
-                    onClick={handleLockerClick}
-                    isSelected={selectedLockers.has('MID1') || selectedLockerForDetails === 'MID1'}
-                  />
-                  <div className="service-section">
-                    <div className="service">Service</div>
-                    <div className="steering">Steering</div>
-                  </div>
-                  <div className="small-lockers">
-                    {['MID4', 'MID5', 'MID6', 'MID7'].map(lockerId => (
-                      <Locker 
-                        key={lockerId}
-                        size="S" 
-                        lockerCode={lockerId} 
-                        onContextMenu={handleContextMenu}
-                        onClick={handleLockerClick}
-                        isSelected={selectedLockers.has(lockerId) || selectedLockerForDetails === lockerId}
-                      />
-                    ))}
-                  </div>
-                  <Locker 
-                    size="L" 
-                    lockerCode="MID8" 
-                    onContextMenu={handleContextMenu}
-                    onClick={handleLockerClick}
-                    isSelected={selectedLockers.has('MID8') || selectedLockerForDetails === 'MID8'}
-                  />
-                </>
-              ) : (
-                columnLayouts[col].map((locker: LockerConfig, index: number) => {
-                  const lockerCode = `${col}${index + 1}`;
-                  return (
-                    <Locker
-                      key={index}
-                      size={locker.size}
-                      isEmpty={locker.isEmpty}
-                      isComparison={locker.isComparison}
-                      comparisonState={locker.comparisonState}
-                      lockerCode={lockerCode}
+    <div className="locker-grid" onContextMenu={(e) => e.preventDefault()}>
+      <div className="grid-layout">
+        <Legend />
+        <div className="grid-main">
+          <div className="column-headers">
+            {columns.map((col) => (
+              <div key={col} className="column-header">{col === 'MID' ? '' : col}</div>
+            ))}
+          </div>
+          <div className="grid-container">
+            {columns.map((col) => (
+              <div key={col} className="column">
+                {col === 'MID' ? (
+                  <>
+                    <Locker 
+                      size="L" 
+                      lockerCode="MID1" 
                       onContextMenu={handleContextMenu}
                       onClick={handleLockerClick}
-                      isSelected={selectedLockers.has(lockerCode) || selectedLockerForDetails === lockerCode}
+                      isSelected={selectedLockers.has('MID1')}
                     />
-                  );
-                })
-              )}
-            </div>
-          ))}
+                    <div className="service-section">
+                      <div className="service">Service</div>
+                      <div className="steering">Steering</div>
+                    </div>
+                    <div className="small-lockers">
+                      {['MID4', 'MID5', 'MID6', 'MID7'].map(lockerId => (
+                        <Locker 
+                          key={lockerId}
+                          size="S" 
+                          lockerCode={lockerId} 
+                          onContextMenu={handleContextMenu}
+                          onClick={handleLockerClick}
+                          isSelected={selectedLockers.has(lockerId)}
+                        />
+                      ))}
+                    </div>
+                    <Locker 
+                      size="L" 
+                      lockerCode="MID8" 
+                      onContextMenu={handleContextMenu}
+                      onClick={handleLockerClick}
+                      isSelected={selectedLockers.has('MID8')}
+                    />
+                  </>
+                ) : (
+                  columnLayouts[col].map((locker: LockerConfig, index: number) => {
+                    const lockerCode = `${col}${index + 1}`;
+                    return (
+                      <Locker
+                        key={index}
+                        size={locker.size}
+                        isEmpty={locker.isEmpty}
+                        isComparison={locker.isComparison}
+                        comparisonState={locker.comparisonState}
+                        lockerCode={lockerCode}
+                        onContextMenu={handleContextMenu}
+                        onClick={handleLockerClick}
+                        isSelected={selectedLockers.has(lockerCode)}
+                      />
+                    );
+                  })
+                )}
+              </div>
+            ))}
+          </div>
         </div>
-        {contextMenu && (
-          <ContextMenu
-            x={contextMenu.x}
-            y={contextMenu.y}
-            onClose={() => setContextMenu(null)}
-            lockerId={contextMenu.lockerId}
-            onChangeBox={handleChangeBox}
-            onRemoveParcel={handleRemoveParcel}
-            onBlockWithClaim={handleBlockWithClaim}
-            onChangeExpiration={handleChangeExpiration}
-          />
-        )}
-        <ChangeBoxModal
-          isOpen={isModalOpen}
-          onClose={handleModalClose}
-          onSave={handleModalSave}
-          parcelNumber="663400868586300013163881"
-        />
-        <RemoveParcelModal
-          isOpen={isRemoveModalOpen}
-          onClose={handleRemoveModalClose}
-          onRemove={handleRemoveModalSubmit}
-        />
-        <BlockWithClaimModal
-          isOpen={isBlockClaimModalOpen}
-          onClose={handleBlockClaimModalClose}
-          onBlock={handleBlockClaimSubmit}
-        />
-        <ChangeExpirationModal
-          isOpen={isExpirationModalOpen}
-          onClose={handleExpirationModalClose}
-          onSave={handleExpirationModalSave}
-          parcelNumber="663400868586300013163881"
-        />
       </div>
-      {showDetailsTable && selectedLockerForDetails && (
-        <DetailsTable details={getLockerDetails(selectedLockerForDetails)} />
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onClose={() => setContextMenu(null)}
+          lockerId={contextMenu.lockerId}
+          onChangeBox={handleChangeBox}
+          onRemoveParcel={handleRemoveParcel}
+          onBlockWithClaim={handleBlockWithClaim}
+          onChangeExpiration={handleChangeExpiration}
+        />
       )}
-    </>
+      <ChangeBoxModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onSave={handleModalSave}
+        parcelNumber="663400868586300013163881"
+      />
+      <RemoveParcelModal
+        isOpen={isRemoveModalOpen}
+        onClose={handleRemoveModalClose}
+        onRemove={handleRemoveModalSubmit}
+      />
+      <BlockWithClaimModal
+        isOpen={isBlockClaimModalOpen}
+        onClose={handleBlockClaimModalClose}
+        onBlock={handleBlockClaimSubmit}
+      />
+      <ChangeExpirationModal
+        isOpen={isExpirationModalOpen}
+        onClose={handleExpirationModalClose}
+        onSave={handleExpirationModalSave}
+        parcelNumber="663400868586300013163881"
+      />
+      {showDetailsTable && selectedLockers.size > 0 && (
+        <DetailsTable detailsMap={lockerDetailsRef.current} selectedLockers={Array.from(selectedLockers)} />
+      )}
+    </div>
   );
 };
 
