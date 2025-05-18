@@ -10,63 +10,191 @@ html {
 
 .locker-grid {
   width: 100%;
-  max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1rem;
   background: #f8f9fa;
   font-family: var(--font-primary);
   position: relative;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-layout {
+  display: flex;
+  width: 100%;
+}
+
+.grid-main {
+  flex: 1;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow: visible;
+  width: 100%;
 }
 
 .column-headers {
-  display: flex;
-  margin-bottom: 1rem;
-  height: 1.5rem;
-  margin-top: -2.5rem;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  width: 100%;
 }
 
 .column-header {
-  flex: 1;
   text-align: center;
   font-weight: 600;
   font-size: 0.9rem;
+  padding: 0.5rem;
   color: #495057;
-  font-family: var(--font-primary);
-  letter-spacing: -0.01em;
+  border-bottom: 1px solid #e9ecef;
+  white-space: nowrap;
 }
 
 .grid-container {
-  display: flex;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   background: white;
-  border: 1px solid #e9ecef;
+  border: 1px solid transparent;
   margin: 0 0 1rem 0;
+  overflow-y: hidden;
+  height: fit-content;
+  min-height: min-content;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Add custom scrollbar styling */
+.grid-container {
+  scrollbar-width: thin; /* For Firefox */
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent; /* For Firefox */
+}
+
+.grid-container::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.grid-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.grid-container::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+/* Ensure content doesn't shift due to scrollbar */
+.grid-container {
+  overflow-y: overlay; /* Uses overlay scrollbar on supported browsers */
+}
+
+@supports not (overflow-y: overlay) {
+  .grid-container {
+    overflow-y: auto;
+    margin-right: -6px; /* Compensate for scrollbar width */
+    padding-right: 6px;
+  }
+}
+
+.column-row {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
 .column {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #e9ecef;
+  box-sizing: border-box;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  line-height: normal;
+  letter-spacing: normal;
+  gap: 2px;
 }
 
 .column:last-child {
   border-right: none;
 }
 
+/* Remove any potential duplicate borders */
+.grid-container > :not(:last-child) {
+  margin-right: -1px;
+}
+
+/* Ensure consistent border color and weight */
+.grid-container,
+.column {
+  border-color: transparent;
+  border-width: 1px;
+  border-style: solid;
+}
+
+/* Combine header row and column row into a single layout */
+.header-row {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: white;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  width: 100%;
+}
+
+.column-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  width: 100%;
+}
+
+/* Ensure headers align with columns exactly */
+.header-row, .column-row {
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+}
+
+/* Remove the existing style that was causing misalignment */
+.column-row > div {
+  display: grid;
+}
+
+/* Use grid instead of flexbox for the main structure */
+.grid-main {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  width: 100%;
+}
+
 .locker {
-  background-color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   box-sizing: border-box;
   margin: 0;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid transparent;
   width: 100%;
-  padding: 1px;
+  padding: 2px;
   cursor: pointer;
   user-select: none;
   flex-wrap: wrap;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.locker-content {
+  background-color: white;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  box-sizing: border-box;
 }
 
 .locker[data-tooltip] {
@@ -102,24 +230,16 @@ html {
   z-index: 1000;
 }
 
-.locker.occupied {
+.locker.occupied .locker-content {
   background-color: #4CAF50;
-  border-radius: 4px;
 }
 
-.locker.occupied:hover {
-  opacity: 0.85;
-  cursor: pointer;
-}
-
-.locker.empty {
+.locker.empty .locker-content {
   background-color: rgba(0, 0, 0, 0.05);
-  border-radius: 4px;
 }
 
-.locker.empty:hover {
+.locker.empty:hover .locker-content {
   background-color: rgba(0, 0, 0, 0.1);
-  cursor: pointer;
 }
 
 .status-split {
@@ -129,6 +249,7 @@ html {
   height: 100%;
   overflow: hidden;
   border-radius: 4px;
+  box-sizing: border-box;
 }
 
 .status-half {
@@ -137,15 +258,10 @@ html {
   align-items: center;
   justify-content: center;
   position: relative;
-  transition: opacity 0.2s ease;
-}
-
-.locker:hover .status-half {
-  opacity: 0.85;
+  z-index: 1;
 }
 
 .status-half.apm {
-  border-right: 1px dashed rgba(0, 0, 0, 0.1);
   border-top-left-radius: 4px;
   border-bottom-left-radius: 4px;
 }
@@ -155,73 +271,65 @@ html {
   border-bottom-right-radius: 4px;
 }
 
-.status-half.unclosed {
-  border: 2px solid #000;
-  border-radius: 4px;
-}
-
-/* Locker sizes with correct ratios */
-.locker.size-s {
-  height: 30px;
-}
-
-.locker.size-m {
-  height: 60px;
-}
-
-.locker.size-l {
-  height: 120px;
-}
-
-.package {
-  font-size: 14px;
-  position: relative;
-}
-
-.service-section {
-  display: flex;
-  flex-direction: column;
-  background: #6c757d;
-  color: white;
-  text-align: center;
-  height: 180px;
-}
-
-.service, .steering {
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 500;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  font-size: 0.9rem;
-  font-family: var(--font-primary);
-}
-
-.small-lockers {
-  display: flex;
-  flex-direction: column;
+.locker:hover .status-half {
+  opacity: 0.85;
 }
 
 .locker.selected {
-  outline: 2px solid #007bff;
-  outline-offset: -2px;
-  z-index: 1;
-  opacity: 0.85;
+  z-index: 2;
+  position: relative;
+}
+
+.locker.selected .locker-content {
+  position: relative;
+}
+
+.locker.selected .locker-content::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 3px solid #2563eb;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 10;
 }
 
 .locker.selected .status-split {
-  opacity: 0.85;
+  position: relative;
 }
 
-.locker.selected.empty {
-  background-color: rgba(0, 123, 255, 0.1);
+.locker.selected .status-split::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 3px solid #2563eb;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 10;
 }
 
-.locker.selected.occupied {
-  opacity: 0.85;
+.locker.selected:hover .locker-content::after,
+.locker.selected:hover .status-split::after {
+  border-color: #1d4ed8;
+}
+
+.locker.selected .status-half {
+  z-index: 1;
+}
+
+.locker.selected .status-half.apm {
+  border-right: 1px dashed rgba(0, 0, 0, 0.1);
+}
+
+.locker.selected:hover .locker-content,
+.locker.selected:hover .status-split {
+  outline-color: #1d4ed8;
 }
 
 .modal-overlay {
@@ -336,18 +444,13 @@ textarea.form-control {
 }
 
 .details-table-container {
-  position: relative;
   margin-top: 1rem;
-  padding: 0.75rem;
+  width: 100%;
+  overflow-x: auto;
   background: white;
-  border: 1px solid #e9ecef;
   border-radius: 6px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  max-height: 800px;
-  overflow-y: auto;
-  width: 100%;
-  box-sizing: border-box;
-  margin-right: 0;
+  grid-row: 3;
 }
 
 .details-table {
@@ -439,26 +542,12 @@ textarea.form-control {
   background-color: #f8f9fa;
 }
 
-.grid-layout {
-  display: flex;
-  gap: 1.5rem;
-  width: 100%;
-  box-sizing: border-box;
-  position: relative;
-}
-
-.grid-main {
-  flex: 1;
-  min-width: 0;
-  width: 100%;
-  box-sizing: border-box;
-  padding-top: 2.5rem;
-}
-
 .legend-container {
   position: relative;
   z-index: 3;
   height: 100%;
+  flex-shrink: 0; /* Prevent legend from shrinking */
+  width: auto; /* Allow natural width */
 }
 
 .action-buttons {
@@ -675,3 +764,192 @@ textarea.form-control {
   height: 100%;
   border-right: 1px dashed rgba(0, 0, 0, 0.1);
 }
+
+.grid-main * {
+  border-color: transparent !important;
+}
+
+.grid-main .service-section {
+  border: 1px solid transparent;
+}
+
+.grid-main .service,
+.grid-main .steering {
+  border-bottom: 1px solid transparent;
+}
+
+.grid-main .details-table th,
+.grid-main .details-table td {
+  border-color: transparent;
+}
+
+.grid-main .details-table .value-header,
+.grid-main .details-table .value-cell {
+  border-left: 1px solid transparent;
+}
+
+.grid-main .details-table .merged-header-group {
+  border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+}
+
+.grid-main .details-table .group-start {
+  border-left: 1px solid transparent;
+}
+
+.grid-main .details-table .group-end {
+  border-right: 1px solid transparent;
+}
+
+.grid-main .details-table .parcel-column:not(.group-start):not(.group-end)::after {
+  border-right: 1px dashed transparent;
+}
+
+.package {
+  font-size: 14px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.service-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  height: 182px; /* 60px (M) + 120px (L) + 2px gap */
+  margin: 2px 0;
+  width: 100%;
+}
+
+.service {
+  height: 60px; /* Size M */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #fff;
+  background-color: #6c757d;
+  padding: 0;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.steering {
+  height: 120px; /* Size L */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #fff;
+  background-color: #6c757d;
+  padding: 0;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.small-lockers {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(4, 30px); /* 4 size S lockers */
+  gap: 2px;
+  width: 100%;
+  margin: 2px 0;
+}
+
+.locker.selected.empty .locker-content {
+  border: 3px solid #2563eb;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+.locker.selected .status-half.unclosed {
+  border: 2px solid transparent;
+  border-radius: 4px;
+}
+
+/* Locker sizes with correct ratios and internal padding */
+.locker.size-s {
+  height: 30px; /* Base unit height */
+  padding: 2px 2px;
+}
+
+.locker.size-m {
+  height: 60px; /* 2x base unit */
+  padding: 2px 2px;
+}
+
+.locker.size-l {
+  height: 120px; /* 4x base unit */
+  padding: 2px 2px;
+}
+
+/* Update comparison state styles */
+.locker.size-s .status-split,
+.locker.size-m .status-split,
+.locker.size-l .status-split {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Remove Safari-specific fixed width */
+@media not all and (min-resolution:.001dpcm) { 
+  @supports (-webkit-appearance:none) {
+    .grid-main {
+      width: auto !important;
+      flex: 1 1 auto !important;
+    }
+    
+    .column-row, .header-row {
+      min-width: auto !important;
+      max-width: 100% !important;
+    }
+    
+    .column, .column-header {
+      flex-shrink: 1 !important;
+      flex-grow: 1 !important;
+/*      flex-basis: 120px !important; */
+      min-width: 0 !important;
+    }
+  }
+}
+
+/* Update additional fix for Safari */
+_::-webkit-full-page-media, _:future, :root .grid-main {
+  width: auto;
+  flex: 1 1 auto;
+}
+
+_::-webkit-full-page-media, _:future, :root .column-row,
+_::-webkit-full-page-media, _:future, :root .header-row {
+  width: auto !important;
+}
+
+/* Fix for Safari float precision issues */
+.column-row, .header-row {
+  font-size: 0;
+  line-height: 0;
+  letter-spacing: normal;
+}
+
+@media screen and (min-width: 992px) {
+  .grid-main {
+    width: 100%;
+    overflow-x: visible;
+  }
+  
+  .header-row, .column-row {
+    grid-template-columns: repeat(13, 1fr);
+  }
+  
+  /* Ensure each locker is the same width */
+  .column-header, .column {
+    width: auto;
+    min-width: 0;
+  }
+}
+

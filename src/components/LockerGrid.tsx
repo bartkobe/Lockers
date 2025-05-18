@@ -3,7 +3,7 @@ import './LockerGrid.css';
 import Legend from './Legend';
 
 type LockerSize = 'S' | 'M' | 'L';
-type ColumnName = '4L' | '3L' | '2L' | '1L' | 'MID' | '1R' | '2R' | '3R' | '4R' | '5R';
+type ColumnName = '4L' | '3L' | '2L' | '1L' | 'MID' | '1R' | '2R' | '3R' | '4R' | '5R' | '6R' | '7R' | '8R';
 
 type LockerStatus = 
   | 'empty' 
@@ -41,6 +41,7 @@ interface LockerConfig {
   };
   hasMultipleParcels?: boolean;
   parcels?: string[];
+  hasParcel?: boolean;
 }
 
 interface ComparisonState {
@@ -59,6 +60,7 @@ interface LockerProps {
   onClick: (event: React.MouseEvent, lockerId: string) => void;
   isSelected: boolean;
   hasMultipleParcels?: boolean;
+  parcels?: string[];
 }
 
 interface LockerDetails {
@@ -68,17 +70,17 @@ interface LockerDetails {
 
 const statusColors: Record<LockerStatus, string> = {
   'empty': '#FFFFFF',
-  'in use': '#4CAF50',
-  'expired parcels': '#FFD700',
-  'Claimed': '#4B0082',
-  'soiled': '#8B4513',
-  'damaged': '#FF0000',
-  'Inspection': '#98FF98',
-  'Unclosed': '#FFFFFF',
-  'Damaged and Inspection': '#FF7F50',
-  'Damaged and Soiled': '#40E0D0',
-  'Soiled and Inspection': '#8B0000',
-  'Damaged, Soiled and Inspection': '#8A2BE2'
+  'in use': '#7FB883',          // Softer green
+  'expired parcels': '#E6C87D', // Softer gold
+  'Claimed': '#8B7B9F',         // Softer indigo
+  'soiled': '#B89F8E',          // Softer brown
+  'damaged': '#E6A4A4',         // Softer red
+  'Inspection': '#B8D8B8',      // Softer mint green
+  'Unclosed': '#FFFFFF',        // Keep white for unclosed
+  'Damaged and Inspection': '#E6B8A4', // Softer coral
+  'Damaged and Soiled': '#A4D8D8',     // Softer turquoise
+  'Soiled and Inspection': '#B88E8E',   // Softer maroon
+  'Damaged, Soiled and Inspection': '#B8A4D8' // Softer purple
 };
 
 // Sample data with discrepancies
@@ -542,7 +544,8 @@ const Locker: React.FC<LockerProps> = ({
   onContextMenu,
   onClick,
   isSelected,
-  hasMultipleParcels = false
+  hasMultipleParcels = false,
+  parcels
 }) => {
   if (isComparison && comparisonState) {
     return (
@@ -552,17 +555,19 @@ const Locker: React.FC<LockerProps> = ({
         onClick={(e) => onClick(e, lockerCode)}
         data-tooltip={lockerCode}
       >
-        <div className="status-split">
-          <div 
-            className={`status-half apm ${comparisonState.apmStatus === 'Unclosed' ? 'unclosed' : ''}`}
-            style={{ backgroundColor: statusColors[comparisonState.apmStatus] }}
-          >
-            {comparisonState.hasParcel && <span className="package">📦</span>}
-          </div>
-          <div 
-            className={`status-half db ${comparisonState.dbStatus === 'Unclosed' ? 'unclosed' : ''}`}
-            style={{ backgroundColor: statusColors[comparisonState.dbStatus] }}
-          >
+        <div className="locker-content">
+          <div className="status-split">
+            <div 
+              className={`status-half apm ${comparisonState.apmStatus === 'Unclosed' ? 'unclosed' : ''}`}
+              style={{ backgroundColor: statusColors[comparisonState.apmStatus] }}
+            >
+              {comparisonState.hasParcel && <span className="package">📦</span>}
+            </div>
+            <div 
+              className={`status-half db ${comparisonState.dbStatus === 'Unclosed' ? 'unclosed' : ''}`}
+              style={{ backgroundColor: statusColors[comparisonState.dbStatus] }}
+            >
+            </div>
           </div>
         </div>
       </div>
@@ -576,14 +581,16 @@ const Locker: React.FC<LockerProps> = ({
         onClick={(e) => onClick(e, lockerCode)}
         data-tooltip={lockerCode}
       >
-        {!isEmpty && (
-          <>
-            <span className="package">📦</span>
-            {hasMultipleParcels && (
-              <span className="package" style={{ marginLeft: '-5px', marginTop: '3px' }}>📦</span>
-            )}
-          </>
-        )}
+        <div className="locker-content">
+          {!isEmpty && (
+            <>
+              <span className="package">📦</span>
+              {hasMultipleParcels && (
+                <span className="package" style={{ marginLeft: '-5px', marginTop: '3px' }}>📦</span>
+              )}
+            </>
+          )}
+        </div>
       </div>
     );
   }
@@ -774,14 +781,13 @@ const LockerGrid: React.FC = () => {
       { size: 'L' }
     ],
     'MID': [
-      { size: 'L' },
-      { size: 'M', isEmpty: true }, // Service
-      { size: 'L', isEmpty: true }, // Steering
-      { size: 'S' },
-      { size: 'S' },
-      { size: 'S' },
-      { size: 'S' },
-      { size: 'L' }
+      { size: 'L' }, // MID1
+      // Service and Steering are handled in the JSX directly
+      { size: 'S' }, // MID4
+      { size: 'S' }, // MID5
+      { size: 'S' }, // MID6
+      { size: 'S' }, // MID7
+      { size: 'L' }  // MID8
     ],
     '1R': [
       { size: 'L', isEmpty: true },
@@ -876,6 +882,38 @@ const LockerGrid: React.FC = () => {
       { size: 'M' },
       { size: 'M' },
       { size: 'L' }
+    ],
+    '6R': [
+      { size: 'L', isEmpty: true },
+      { size: 'M', hasParcel: true },
+      { size: 'M', isEmpty: true },
+      { size: 'M', isEmpty: true },
+      { size: 'M', isEmpty: true },
+      { size: 'M', isEmpty: true },
+      { size: 'L', hasParcel: true }
+    ],
+    '7R': [
+      { size: 'L', hasParcel: true },
+      { size: 'M', isEmpty: true },
+      { size: 'M', hasParcel: true },
+      { size: 'M', isEmpty: true },
+      { size: 'M', hasParcel: true },
+      { size: 'M', isEmpty: true },
+      { size: 'L', hasParcel: true }
+    ],
+    '8R': [
+      { size: 'L', hasParcel: true },
+      { size: 'S', hasParcel: true },
+      { size: 'S', isEmpty: true },
+      { size: 'S', hasParcel: true },
+      { size: 'S', isEmpty: true },
+      { size: 'S', hasParcel: true },
+      { size: 'S', isEmpty: true },
+      { size: 'S', hasParcel: true },
+      { size: 'S', isEmpty: true },
+      { size: 'S', hasParcel: true },
+      { size: 'S', isEmpty: true },
+      { size: 'L', isEmpty: true }
     ]
   };
 
@@ -1097,21 +1135,23 @@ const LockerGrid: React.FC = () => {
     setIsExpirationModalOpen(false);
   }, []);
 
-  const columns: ColumnName[] = ['4L', '3L', '2L', '1L', 'MID', '1R', '2R', '3R', '4R', '5R'];
+  const columns: ColumnName[] = ['4L', '3L', '2L', '1L', 'MID', '1R', '2R', '3R', '4R', '5R', '6R', '7R', '8R'];
   
   return (
     <div className="locker-grid" onContextMenu={(e) => e.preventDefault()}>
       <div className="grid-layout">
         <Legend />
         <div className="grid-main">
-          <div className="column-headers">
+          <div className="header-row">
             {columns.map((col) => (
-              <div key={col} className="column-header">{col === 'MID' ? '' : col}</div>
+              <div key={`header-${col}`} className="column-header">
+                {col === 'MID' ? '' : col}
+              </div>
             ))}
           </div>
-          <div className="grid-container">
+          <div className="column-row">
             {columns.map((col) => (
-              <div key={col} className="column">
+              <div key={`column-${col}`} className="column">
                 {col === 'MID' ? (
                   <>
                     <Locker 
@@ -1146,27 +1186,28 @@ const LockerGrid: React.FC = () => {
                     />
                   </>
                 ) : (
-                  columnLayouts[col].map((locker: LockerConfig, index: number) => {
-                    const lockerCode = `${col}${index + 1}`;
-                    return (
-                      <Locker
-                        key={index}
-                        size={locker.size}
-                        isEmpty={locker.isEmpty}
-                        isComparison={locker.isComparison}
-                        comparisonState={locker.comparisonState}
-                        lockerCode={lockerCode}
-                        onContextMenu={handleContextMenu}
-                        onClick={handleLockerClick}
-                        isSelected={selectedLockers.has(lockerCode)}
-                        hasMultipleParcels={locker.hasMultipleParcels}
-                      />
-                    );
-                  })
+                  columnLayouts[col as ColumnName].map((config, index) => (
+                    <Locker
+                      key={`${col}-${index}`}
+                      size={config.size}
+                      lockerCode={`${col}${index + 1}`}
+                      onContextMenu={handleContextMenu}
+                      onClick={handleLockerClick}
+                      isSelected={selectedLockers.has(`${col}${index + 1}`)}
+                      isEmpty={config.isEmpty}
+                      hasMultipleParcels={config.hasMultipleParcels}
+                      parcels={config.parcels}
+                      isComparison={config.isComparison}
+                      comparisonState={config.comparisonState}
+                    />
+                  ))
                 )}
               </div>
             ))}
           </div>
+          {showDetailsTable && selectedLockers.size > 0 && (
+            <DetailsTable detailsMap={lockerDetailsRef.current} selectedLockers={Array.from(selectedLockers)} />
+          )}
         </div>
       </div>
       {contextMenu && (
@@ -1203,9 +1244,6 @@ const LockerGrid: React.FC = () => {
         onSave={handleExpirationModalSave}
         parcelNumber="663400868586300013163881"
       />
-      {showDetailsTable && selectedLockers.size > 0 && (
-        <DetailsTable detailsMap={lockerDetailsRef.current} selectedLockers={Array.from(selectedLockers)} />
-      )}
     </div>
   );
 };
