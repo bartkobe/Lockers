@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-html {
-  overflow-y: scroll;
+html, body {
+  overflow-y: auto;
 }
 
 :root {
@@ -16,22 +16,58 @@ html {
   font-family: var(--font-primary);
   position: relative;
   box-sizing: border-box;
-  overflow: hidden;
+  overflow-y: visible;
   display: flex;
   flex-direction: column;
 }
 
 .grid-layout {
   display: flex;
+  flex-direction: row;
   width: 100%;
+  overflow-y: visible;
+}
+
+.content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  max-width: calc(100% - 180px); /* Account for the Legend width */
+  overflow-y: visible;
 }
 
 .grid-main {
-  flex: 1;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  overflow: visible;
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  width: 1560px; /* Fixed width: 13 columns × 120px */
+  min-width: 1560px;
+}
+
+/* Hide vertical scrollbar for Chrome, Safari and Opera */
+.grid-main::-webkit-scrollbar {
+  height: 8px;
+  width: 0;
+  display: none;
+}
+
+.grid-main::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.grid-main::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.grid-main::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Hide vertical scrollbar for IE, Edge and Firefox */
+.grid-main {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 
 .column-headers {
@@ -49,6 +85,8 @@ html {
   color: #495057;
   border-bottom: 1px solid #e9ecef;
   white-space: nowrap;
+  width: 120px;
+  flex: 0 0 120px;
 }
 
 .grid-container {
@@ -58,50 +96,53 @@ html {
   background: white;
   border: 1px solid transparent;
   margin: 0 0 1rem 0;
-  overflow-y: hidden;
+  overflow-y: visible;
   height: fit-content;
   min-height: min-content;
   width: 100%;
   box-sizing: border-box;
+  scrollbar-width: none;
 }
 
-/* Add custom scrollbar styling */
+/* Remove all vertical scrollbars */
+* {
+  scrollbar-width: auto;
+}
+
+*::-webkit-scrollbar {
+  width: auto;
+}
+
+/* But keep horizontal scrollbar for grid-main */
+.grid-main::-webkit-scrollbar {
+  height: 8px;
+  display: block;
+}
+
+/* Override back any previous scrollbar settings */
 .grid-container {
-  scrollbar-width: thin; /* For Firefox */
-  scrollbar-color: rgba(0, 0, 0, 0.2) transparent; /* For Firefox */
+  overflow-y: visible !important;
+  scrollbar-width: none !important;
 }
 
 .grid-container::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-.grid-container::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.grid-container::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
-}
-
-/* Ensure content doesn't shift due to scrollbar */
-.grid-container {
-  overflow-y: overlay; /* Uses overlay scrollbar on supported browsers */
+  width: 0 !important;
 }
 
 @supports not (overflow-y: overlay) {
   .grid-container {
-    overflow-y: auto;
-    margin-right: -6px; /* Compensate for scrollbar width */
-    padding-right: 6px;
+    overflow-y: visible !important;
+    margin-right: 0 !important;
+    padding-right: 0 !important;
   }
 }
 
 .column-row {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(13, 120px);
+  width: 1560px;
+  min-width: 1560px;
+  overflow-y: visible;
 }
 
 .column {
@@ -114,6 +155,8 @@ html {
   line-height: normal;
   letter-spacing: normal;
   gap: 2px;
+  width: 120px;
+  flex: 0 0 120px;
 }
 
 .column:last-child {
@@ -135,26 +178,10 @@ html {
 
 /* Combine header row and column row into a single layout */
 .header-row {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: white;
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  width: 100%;
-}
-
-.column-row {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  width: 100%;
-}
-
-/* Ensure headers align with columns exactly */
-.header-row, .column-row {
-  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  grid-template-columns: repeat(13, 120px);
+  width: 1560px;
+  min-width: 1560px;
 }
 
 /* Remove the existing style that was causing misalignment */
@@ -165,8 +192,21 @@ html {
 /* Use grid instead of flexbox for the main structure */
 .grid-main {
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto auto auto;
   width: 100%;
+}
+
+.scrollable-content {
+  grid-row: 2;
+  overflow-x: auto;
+  overflow-y: visible;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollable-content::-webkit-scrollbar {
+  height: 8px;
+  width: 0;
 }
 
 .locker {
@@ -443,14 +483,20 @@ textarea.form-control {
   background-color: #5a6268;
 }
 
-.details-table-container {
+.details-table-wrapper {
   margin-top: 1rem;
+  width: 100%;
+  overflow-x: auto;
+  padding: 0;
+}
+
+.details-table-container {
+  margin-top: 0;
   width: 100%;
   overflow-x: auto;
   background: white;
   border-radius: 6px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  grid-row: 3;
 }
 
 .details-table {
@@ -939,17 +985,58 @@ _::-webkit-full-page-media, _:future, :root .header-row {
 @media screen and (min-width: 992px) {
   .grid-main {
     width: 100%;
-    overflow-x: visible;
+    overflow-x: auto;
   }
   
   .header-row, .column-row {
-    grid-template-columns: repeat(13, 1fr);
+    grid-template-columns: repeat(13, 120px);
   }
   
   /* Ensure each locker is the same width */
   .column-header, .column {
-    width: auto;
-    min-width: 0;
+    width: 120px;
+    min-width: 120px;
+    flex: 0 0 120px;
   }
+}
+
+.scrollable-wrapper {
+  width: 100%;
+  overflow-x: scroll !important;
+  overflow-y: hidden !important;
+  margin-bottom: 1rem;
+}
+
+/* Reset scrollbar styles */
+* {
+  overflow-y: visible !important;
+  scrollbar-width: none !important;
+}
+
+/* But keep horizontal scrollbar */
+.scrollable-wrapper {
+  scrollbar-width: thin !important;
+  -ms-overflow-style: auto !important;
+  overflow-x: scroll !important;
+}
+
+/* Hide vertical scrollbars for all elements */
+::-webkit-scrollbar {
+  width: 0 !important;
+  height: 10px;
+}
+
+/* Style the horizontal scrollbar */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
