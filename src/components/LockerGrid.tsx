@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import './LockerGrid.css';
 import Legend from './Legend';
+import Tooltip from './Tooltip';
 
 type LockerSize = 'S' | 'M' | 'L';
 type ColumnName = '4L' | '3L' | '2L' | '1L' | 'MID' | '1R' | '2R' | '3R' | '4R' | '5R' | '6R' | '7R' | '8R';
@@ -549,49 +550,51 @@ const Locker: React.FC<LockerProps> = ({
 }) => {
   if (isComparison && comparisonState) {
     return (
-      <div 
-        className={`locker size-${size.toLowerCase()} ${isSelected ? 'selected' : ''}`}
-        onContextMenu={(e) => onContextMenu(e, lockerCode)}
-        onClick={(e) => onClick(e, lockerCode)}
-        data-tooltip={lockerCode}
-      >
-        <div className="locker-content">
-          <div className="status-split">
-            <div 
-              className={`status-half apm ${comparisonState.apmStatus === 'Unclosed' ? 'unclosed' : ''}`}
-              style={{ backgroundColor: statusColors[comparisonState.apmStatus] }}
-            >
-              {comparisonState.hasParcel && <span className="package">📦</span>}
-            </div>
-            <div 
-              className={`status-half db ${comparisonState.dbStatus === 'Unclosed' ? 'unclosed' : ''}`}
-              style={{ backgroundColor: statusColors[comparisonState.dbStatus] }}
-            >
+      <Tooltip text={lockerCode} position="top">
+        <div 
+          className={`locker size-${size.toLowerCase()} ${isSelected ? 'selected' : ''}`}
+          onContextMenu={(e) => onContextMenu(e, lockerCode)}
+          onClick={(e) => onClick(e, lockerCode)}
+        >
+          <div className="locker-content">
+            <div className="status-split">
+              <div 
+                className={`status-half apm ${comparisonState.apmStatus === 'Unclosed' ? 'unclosed' : ''}`}
+                style={{ backgroundColor: statusColors[comparisonState.apmStatus] }}
+              >
+                {comparisonState.hasParcel && <span className="package">📦</span>}
+              </div>
+              <div 
+                className={`status-half db ${comparisonState.dbStatus === 'Unclosed' ? 'unclosed' : ''}`}
+                style={{ backgroundColor: statusColors[comparisonState.dbStatus] }}
+              >
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </Tooltip>
     );
   } else {
     const statusClass = isEmpty ? 'empty' : 'occupied';
     return (
-      <div 
-        className={`locker size-${size.toLowerCase()} ${statusClass} ${isSelected ? 'selected' : ''}`}
-        onContextMenu={(e) => onContextMenu(e, lockerCode)}
-        onClick={(e) => onClick(e, lockerCode)}
-        data-tooltip={lockerCode}
-      >
-        <div className="locker-content">
-          {!isEmpty && (
-            <>
-              <span className="package">📦</span>
-              {hasMultipleParcels && (
-                <span className="package" style={{ marginLeft: '-5px', marginTop: '3px' }}>📦</span>
-              )}
-            </>
-          )}
+      <Tooltip text={lockerCode} position="top">
+        <div 
+          className={`locker size-${size.toLowerCase()} ${statusClass} ${isSelected ? 'selected' : ''}`}
+          onContextMenu={(e) => onContextMenu(e, lockerCode)}
+          onClick={(e) => onClick(e, lockerCode)}
+        >
+          <div className="locker-content">
+            {!isEmpty && (
+              <>
+                <span className="package">📦</span>
+                {hasMultipleParcels && (
+                  <span className="package" style={{ marginLeft: '-5px', marginTop: '3px' }}>📦</span>
+                )}
+              </>
+            )}
+          </div>
         </div>
-      </div>
+      </Tooltip>
     );
   }
 };
@@ -1137,6 +1140,14 @@ const LockerGrid: React.FC = () => {
 
   const columns: ColumnName[] = ['4L', '3L', '2L', '1L', 'MID', '1R', '2R', '3R', '4R', '5R', '6R', '7R', '8R'];
   
+  const renderColumnHeaders = (columnName: ColumnName) => {
+    return (
+      <Tooltip text={columnName} position="top">
+        <div className="column-header">{columnName}</div>
+      </Tooltip>
+    );
+  };
+
   return (
     <div className="locker-grid" onContextMenu={(e) => e.preventDefault()}>
       <div className="grid-layout">
@@ -1145,11 +1156,9 @@ const LockerGrid: React.FC = () => {
           <div className="scrollable-wrapper">
             <div className="grid-main">
               <div className="header-row">
-                {columns.map((col) => (
-                  <div key={`header-${col}`} className="column-header">
-                    {col === 'MID' ? '' : col}
-                  </div>
-                ))}
+                {columns.map((col) => 
+                  renderColumnHeaders(col)
+                )}
               </div>
               <div className="column-row">
                 {columns.map((col) => (

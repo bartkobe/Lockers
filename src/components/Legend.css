@@ -166,11 +166,26 @@
   height: 14px;
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 3px;
+  background-color: var(--bg-color, transparent);
+  box-sizing: border-box;
+  display: block;
 }
 
 .legend-color.unclosed {
   border: 2px solid #000;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+.legend-color.empty {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+/* Ensure empty status has a visible background */
+.legend-color[style*="rgba(0, 0, 0, 0.05)"] {
+  background-color: #FFFFFF !important;
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .legend-text {
@@ -567,4 +582,44 @@ input[type="number"].form-control::-webkit-inner-spin-button {
 /* Ensure menu tooltips appear above other content */
 .menu-container {
   z-index: 1001;
+}
+
+/* Fix for tooltips */
+.refresh-tooltip {
+  position: fixed !important;
+  z-index: 9999 !important;
+  white-space: nowrap !important;
+  max-width: none !important;
+  width: max-content !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-break: keep-all !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+  background-color: rgba(0, 0, 0, 0.8) !important;
+  color: white !important;
+  padding: 5px 10px !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+  font-family: var(--font-primary) !important;
+  pointer-events: none !important;
+  left: calc(100% + 8px) !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+
+.refresh-tooltip::before {
+  content: '' !important;
+  position: absolute !important;
+  left: -4px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  border-width: 4px !important;
+  border-style: solid !important;
+  border-color: transparent rgba(0, 0, 0, 0.8) transparent transparent !important;
+  pointer-events: none !important;
+}
+
+/* Apply container fixes */
+.menu-container, .action-buttons, .legend-container, button {
+  overflow: visible !important;
 } 

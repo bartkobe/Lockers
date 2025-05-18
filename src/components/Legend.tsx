@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Legend.css';
+import Tooltip from './Tooltip';
 
 interface ChangeLockerModalProps {
   isOpen: boolean;
@@ -129,16 +130,8 @@ const ChangeLockerModal: React.FC<ChangeLockerModalProps> = ({ isOpen, onClose, 
 
 const Legend: React.FC = () => {
   const [hoveredStatus, setHoveredStatus] = useState<string | null>(null);
-  const [isReloadLockerHovered, setIsReloadLockerHovered] = useState(false);
-  const [isChangeParcelLockerHovered, setIsChangeParcelLockerHovered] = useState(false);
   const [isChangeParcelLockerModalOpen, setIsChangeParcelLockerModalOpen] = useState(false);
-  const [isChangeLockerHovered, setIsChangeLockerHovered] = useState(false);
   const [isChangeLockerModalOpen, setIsChangeLockerModalOpen] = useState(false);
-  const [isRemoteControlHovered, setIsRemoteControlHovered] = useState(false);
-  const [isProximityHovered, setIsProximityHovered] = useState(false);
-  const [isResetHovered, setIsResetHovered] = useState(false);
-  const [isMachineHovered, setIsMachineHovered] = useState(false);
-  const [isRouterHovered, setIsRouterHovered] = useState(false);
 
   const handleChangeLockerSearch = (data: { phone: string; openCode: string; parcelCode: string }) => {
     console.log('Searching with data:', data);
@@ -199,7 +192,7 @@ const Legend: React.FC = () => {
   }, []);
 
   const statuses = [
-    { name: 'empty', color: 'rgba(0, 0, 0, 0.05)' },
+    { name: 'empty', color: '#FFFFFF', hasBorder: true },
     { name: 'in use', color: '#7FB883' },
     { name: 'expired parcels', color: '#E6C87D' },
     { name: 'Claimed', color: '#8B7B9F' },
@@ -216,102 +209,78 @@ const Legend: React.FC = () => {
   return (
     <div className="menu-container">
       <div className="action-buttons">
-        <button 
-          className="reload-locker-button"
-          onClick={() => console.log('Reload Locker')}
-          onMouseEnter={() => setIsReloadLockerHovered(true)}
-          onMouseLeave={() => setIsReloadLockerHovered(false)}
-          title="Reload Locker"
-        >
-          <img src="/images/refresh-button.svg" alt="Reload Locker" />
-          {isReloadLockerHovered && (
-            <div className="refresh-tooltip">Reload Locker</div>
-          )}
-        </button>
-        <button 
-          className="change-parcel-locker-button"
-          onClick={() => setIsChangeParcelLockerModalOpen(true)}
-          onMouseEnter={() => setIsChangeParcelLockerHovered(true)}
-          onMouseLeave={() => setIsChangeParcelLockerHovered(false)}
-          title="Change Parcel Locker (Ctrl+Shift+L)"
-        >
-          <img src="/images/change-locker.svg" alt="Change Parcel Locker" />
-          {isChangeParcelLockerHovered && (
-            <div className="refresh-tooltip">Change Parcel Locker (Ctrl+Shift+L)</div>
-          )}
-        </button>
-        <button 
-          className="change-locker-button"
-          onClick={() => setIsChangeLockerModalOpen(true)}
-          onMouseEnter={() => setIsChangeLockerHovered(true)}
-          onMouseLeave={() => setIsChangeLockerHovered(false)}
-          title="Parcel Search (Ctrl+Shift+S)"
-        >
-          <img src="/images/parcel-search.svg" alt="Parcel Search" />
-          {isChangeLockerHovered && (
-            <div className="refresh-tooltip">Parcel Search (Ctrl+Shift+S)</div>
-          )}
-        </button>
-        <button 
-          className="components-remote-control-button"
-          onClick={() => console.log('Components Remote Control')}
-          onMouseEnter={() => setIsRemoteControlHovered(true)}
-          onMouseLeave={() => setIsRemoteControlHovered(false)}
-          title="Components Remote Control (Ctrl+Shift+R)"
-        >
-          <img src="/images/remote_control.svg" alt="Components Remote Control" />
-          {isRemoteControlHovered && (
-            <div className="refresh-tooltip">Components Remote Control (Ctrl+Shift+R)</div>
-          )}
-        </button>
-        <button 
-          className="check-proximity-code-button"
-          onClick={() => console.log('Check Proximity Code')}
-          onMouseEnter={() => setIsProximityHovered(true)}
-          onMouseLeave={() => setIsProximityHovered(false)}
-          title="Check Proximity Code (Ctrl+Shift+P)"
-        >
-          <img src="/images/128.svg" alt="Check Proximity Code" />
-          {isProximityHovered && (
-            <div className="refresh-tooltip">Check Proximity Code (Ctrl+Shift+P)</div>
-          )}
-        </button>
-        <button 
-          className="reset-button"
-          onClick={() => console.log('Reset Machine')}
-          onMouseEnter={() => setIsResetHovered(true)}
-          onMouseLeave={() => setIsResetHovered(false)}
-          title="Reset Machine (Ctrl+Shift+M)"
-        >
-          <img src="/images/reset_machine.svg" alt="Reset Machine" />
-          {isResetHovered && (
-            <div className="refresh-tooltip">Reset Machine (Ctrl+Shift+M)</div>
-          )}
-        </button>
-        <button 
-          className="check-connection-machine-button"
-          onClick={() => console.log('Check Connection with Machine')}
-          onMouseEnter={() => setIsMachineHovered(true)}
-          onMouseLeave={() => setIsMachineHovered(false)}
-          title="Check Connection with Machine (Ctrl+Shift+C)"
-        >
-          <img src="/images/machine-connection.svg" alt="Check Connection with Machine" />
-          {isMachineHovered && (
-            <div className="refresh-tooltip">Check Connection with Machine (Ctrl+Shift+C)</div>
-          )}
-        </button>
-        <button 
-          className="check-connection-router-button"
-          onClick={() => console.log('Check Connection with Router')}
-          onMouseEnter={() => setIsRouterHovered(true)}
-          onMouseLeave={() => setIsRouterHovered(false)}
-          title="Check Connection with Router (Ctrl+Shift+T)"
-        >
-          <img src="/images/router-connection.svg" alt="Check Connection with Router" />
-          {isRouterHovered && (
-            <div className="refresh-tooltip">Check Connection with Router (Ctrl+Shift+T)</div>
-          )}
-        </button>
+        <Tooltip text="Reload Locker">
+          <button 
+            className="reload-locker-button"
+            onClick={() => console.log('Reload Locker')}
+          >
+            <img src="/images/refresh-button.svg" alt="Reload Locker" />
+          </button>
+        </Tooltip>
+        
+        <Tooltip text="Change Parcel Locker (Ctrl+Shift+L)">
+          <button 
+            className="change-parcel-locker-button"
+            onClick={() => setIsChangeParcelLockerModalOpen(true)}
+          >
+            <img src="/images/change-locker.svg" alt="Change Parcel Locker" />
+          </button>
+        </Tooltip>
+        
+        <Tooltip text="Parcel Search (Ctrl+Shift+S)">
+          <button 
+            className="change-locker-button"
+            onClick={() => setIsChangeLockerModalOpen(true)}
+          >
+            <img src="/images/parcel-search.svg" alt="Parcel Search" />
+          </button>
+        </Tooltip>
+        
+        <Tooltip text="Components Remote Control (Ctrl+Shift+R)">
+          <button 
+            className="components-remote-control-button"
+            onClick={() => console.log('Components Remote Control')}
+          >
+            <img src="/images/remote_control.svg" alt="Components Remote Control" />
+          </button>
+        </Tooltip>
+        
+        <Tooltip text="Check Proximity Code (Ctrl+Shift+P)">
+          <button 
+            className="check-proximity-code-button"
+            onClick={() => console.log('Check Proximity Code')}
+          >
+            <img src="/images/128.svg" alt="Check Proximity Code" />
+          </button>
+        </Tooltip>
+        
+        <Tooltip text="Reset Machine (Ctrl+Shift+M)">
+          <button 
+            className="reset-button"
+            onClick={() => console.log('Reset Machine')}
+          >
+            <img src="/images/reset_machine.svg" alt="Reset Machine" />
+          </button>
+        </Tooltip>
+        
+        <Tooltip text="Check Connection with Machine (Ctrl+Shift+C)">
+          <button 
+            className="check-connection-machine-button"
+            onClick={() => console.log('Check Connection with Machine')}
+          >
+            <img src="/images/machine-connection.svg" alt="Check Connection with Machine" />
+          </button>
+        </Tooltip>
+        
+        <Tooltip text="Check Connection with Router (Ctrl+Shift+T)">
+          <button 
+            className="check-connection-router-button"
+            onClick={() => console.log('Check Connection with Router')}
+          >
+            <img src="/images/router-connection.svg" alt="Check Connection with Router" />
+          </button>
+        </Tooltip>
+        
         <div className="button-placeholder"></div>
       </div>
 
@@ -344,23 +313,19 @@ const Legend: React.FC = () => {
         <div className="legend" role="region" aria-label="Status Legend">
           <div className="legend-items">
             {statuses.map((status, index) => (
-              <div 
-                key={index}
-                className="legend-item"
-                onMouseEnter={() => setHoveredStatus(status.name)}
-                onMouseLeave={() => setHoveredStatus(null)}
-                role="listitem"
-              >
+              <Tooltip key={index} text={status.name}>
                 <div 
-                  className={`legend-color ${status.hasBlackBorder ? 'unclosed' : ''}`}
-                  style={{ backgroundColor: status.color }}
-                  aria-hidden="true"
-                />
-                <span className="legend-text">{status.name}</span>
-                {hoveredStatus === status.name && (
-                  <div className="legend-tooltip">{status.name}</div>
-                )}
-              </div>
+                  className="legend-item"
+                  role="listitem"
+                >
+                  <div 
+                    className={`legend-color ${status.hasBlackBorder ? 'unclosed' : ''} ${status.hasBorder ? 'empty' : ''}`}
+                    style={{ backgroundColor: status.color }}
+                    aria-hidden="true"
+                  />
+                  <span className="legend-text">{status.name}</span>
+                </div>
+              </Tooltip>
             ))}
           </div>
         </div>

@@ -255,7 +255,8 @@ html, body {
   font-family: var(--font-primary);
   font-weight: 500;
   white-space: nowrap;
-  z-index: 1000;
+  z-index: 3000;
+  pointer-events: none;
 }
 
 .locker[data-tooltip]:hover::before {
@@ -267,7 +268,8 @@ html, body {
   border-width: 5px;
   border-style: solid;
   border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
-  z-index: 1000;
+  z-index: 3000;
+  pointer-events: none;
 }
 
 .locker.occupied .locker-content {
@@ -652,7 +654,7 @@ textarea.form-control {
 }
 
 .refresh-tooltip {
-  position: absolute;
+  position: fixed;
   left: calc(100% + 8px);
   top: 50%;
   transform: translateY(-50%);
@@ -663,7 +665,7 @@ textarea.form-control {
   font-size: 0.75rem;
   font-weight: 500;
   white-space: nowrap;
-  z-index: 1500;
+  z-index: 3500;
   pointer-events: none;
 }
 
@@ -676,6 +678,7 @@ textarea.form-control {
   border-width: 4px;
   border-style: solid;
   border-color: transparent rgba(0, 0, 0, 0.8) transparent transparent;
+  pointer-events: none;
 }
 
 .legend-items {
@@ -705,7 +708,7 @@ textarea.form-control {
 }
 
 .legend-tooltip {
-  position: absolute;
+  position: fixed;
   left: calc(100% + 8px);
   top: 50%;
   transform: translateY(-50%);
@@ -716,7 +719,7 @@ textarea.form-control {
   font-size: 0.75rem;
   font-weight: 500;
   white-space: nowrap;
-  z-index: 2000;
+  z-index: 4000;
   pointer-events: none;
 }
 
@@ -729,6 +732,7 @@ textarea.form-control {
   border-width: 4px;
   border-style: solid;
   border-color: transparent rgba(0, 0, 0, 0.8) transparent transparent;
+  pointer-events: none;
 }
 
 .menu-container {
@@ -1039,5 +1043,250 @@ _::-webkit-full-page-media, _:future, :root .header-row {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* Add a new class for column header tooltips */
+.column-header[data-tooltip] {
+  position: relative;
+}
+
+.column-header[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: fixed;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: var(--font-primary);
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 3000;
+  pointer-events: none;
+}
+
+.column-header[data-tooltip]:hover::before {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent rgba(0, 0, 0, 0.8) transparent;
+  z-index: 3000;
+  pointer-events: none;
+}
+
+/* Ensure tooltips aren't clipped by parent containers */
+.legend-container, .content-area, .grid-container, .grid-layout, .locker-grid {
+  overflow: visible !important;
+}
+
+/* Add this to ensure tooltips appear on top of all other elements */
+[data-tooltip]::after, [data-tooltip]::before, 
+.refresh-tooltip, .legend-tooltip {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Global tooltip improvements to prevent truncation */
+[data-tooltip]::after,
+.refresh-tooltip, 
+.legend-tooltip {
+  max-width: none !important;
+  min-width: max-content !important;
+  width: auto !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-break: keep-all !important;
+}
+
+/* Update all element tooltips to ensure they're fully visible */
+.locker[data-tooltip]:hover::after,
+.column-header[data-tooltip]:hover::after {
+  max-width: none !important;
+  width: max-content !important;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  overflow: visible;
+  position: fixed;
+  z-index: 9999 !important;
+}
+
+/* Ensure the tooltip is displayed properly for buttons/icons */
+button[data-tooltip]::after,
+.icon[data-tooltip]::after,
+a[data-tooltip]::after {
+  position: fixed !important;
+  width: max-content !important;
+  min-width: max-content !important;
+  white-space: nowrap !important;
+  z-index: 9999 !important;
+  overflow: visible !important;
+}
+
+/* Specific fixes for any parcel related tooltips */
+[data-tooltip*="Parcel"]::after {
+  min-width: 100px !important;
+  width: auto !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  z-index: 9999 !important;
+}
+
+/* Fix any containers that might clip tooltips */
+body, #root, .app, .locker-grid, .grid-layout,
+.content-area, .grid-container, .column, .column-header,
+.legend-container, .legend, .legend-item,
+.refresh-button, .action-buttons {
+  overflow: visible !important;
+}
+
+/* Critical tooltip fixes - add at the very end of the file to ensure maximum specificity */
+
+/* Universal tooltip fixes */
+*[data-tooltip],
+*[title],
+*[aria-label],
+*[data-content],
+*[data-hint],
+*[data-balloon],
+button,
+.tooltip,
+.has-tooltip,
+[class*="tooltip"] {
+  position: relative !important;
+}
+
+*[data-tooltip]::after,
+*[data-tooltip]::before,
+.tooltip::after,
+.tooltip::before,
+.has-tooltip::after,
+.has-tooltip::before,
+[class*="tooltip"]::after,
+[class*="tooltip"]::before {
+  position: fixed !important;
+  width: auto !important;
+  min-width: max-content !important;
+  max-width: 300px !important;
+  white-space: normal !important;
+  z-index: 999999 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
+  overflow: visible !important;
+  text-overflow: initial !important;
+  line-height: 1.4 !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2) !important;
+  text-wrap: nowrap !important;
+  word-break: keep-all !important;
+  word-wrap: normal !important;
+  text-align: center !important;
+}
+
+/* Fix for specific parcel tooltip */
+div[data-tooltip*="Parc"],
+button[data-tooltip*="Parc"],
+span[data-tooltip*="Parc"],
+a[data-tooltip*="Parc"],
+*[data-tooltip*="Parc"],
+*[title*="Parc"] {
+  overflow: visible !important;
+}
+
+div[data-tooltip*="Parc"]::after,
+button[data-tooltip*="Parc"]::after,
+span[data-tooltip*="Parc"]::after,
+a[data-tooltip*="Parc"]::after,
+*[data-tooltip*="Parc"]::after,
+*[title*="Parc"]::after {
+  content: attr(data-tooltip) !important;
+  position: fixed !important;
+  top: auto !important;
+  bottom: 100% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  margin-bottom: 5px !important;
+  background-color: rgba(0, 0, 0, 0.8) !important;
+  color: white !important;
+  padding: 5px 10px !important;
+  border-radius: 4px !important;
+  font-size: 12px !important;
+  font-family: var(--font-primary) !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  z-index: 9999999 !important;
+  pointer-events: none !important;
+  width: auto !important;
+  min-width: 100px !important;
+  max-width: none !important;
+  overflow: visible !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Reset any conflicting properties */
+#root, body, .app, .locker-grid, .grid-container, .column, .content-area, 
+.grid-layout, .legend-container {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* Ensure tooltips are not clipped */
+body {
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+}
+
+/* Tooltip arrow fix */
+div[data-tooltip*="Parc"]::before,
+button[data-tooltip*="Parc"]::before,
+span[data-tooltip*="Parc"]::before,
+a[data-tooltip*="Parc"]::before,
+*[data-tooltip*="Parc"]::before,
+*[title*="Parc"]::before {
+  content: '' !important;
+  position: fixed !important;
+  top: auto !important;
+  bottom: 100% !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  border: 5px solid transparent !important;
+  border-top-color: rgba(0, 0, 0, 0.8) !important;
+  margin-bottom: -5px !important;
+  z-index: 9999999 !important;
+  pointer-events: none !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Target dark tooltip specifically */
+.tooltip,
+div[style*="background-color: rgb(0, 0, 0)"],
+div[style*="background-color: rgba(0, 0, 0"],
+div[style*="background: rgb(0, 0, 0)"],
+div[style*="background: rgba(0, 0, 0"],
+div[style*="background-color: #000"],
+div[style*="background: #000"],
+div[class*="tooltip"],
+span[class*="tooltip"],
+[class*="tooltip"] {
+  width: auto !important;
+  min-width: max-content !important;
+  max-width: none !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  word-break: keep-all !important;
+  z-index: 9999999 !important;
+  position: fixed !important;
 }
 
