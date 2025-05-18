@@ -1141,72 +1141,79 @@ const LockerGrid: React.FC = () => {
     <div className="locker-grid" onContextMenu={(e) => e.preventDefault()}>
       <div className="grid-layout">
         <Legend />
-        <div className="grid-main">
-          <div className="header-row">
-            {columns.map((col) => (
-              <div key={`header-${col}`} className="column-header">
-                {col === 'MID' ? '' : col}
+        <div className="content-area">
+          <div className="scrollable-wrapper">
+            <div className="grid-main">
+              <div className="header-row">
+                {columns.map((col) => (
+                  <div key={`header-${col}`} className="column-header">
+                    {col === 'MID' ? '' : col}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <div className="column-row">
-            {columns.map((col) => (
-              <div key={`column-${col}`} className="column">
-                {col === 'MID' ? (
-                  <>
-                    <Locker 
-                      size="L" 
-                      lockerCode="MID1" 
-                      onContextMenu={handleContextMenu}
-                      onClick={handleLockerClick}
-                      isSelected={selectedLockers.has('MID1')}
-                    />
-                    <div className="service-section">
-                      <div className="service">Service</div>
-                      <div className="steering">Steering</div>
-                    </div>
-                    <div className="small-lockers">
-                      {['MID4', 'MID5', 'MID6', 'MID7'].map(lockerId => (
+              <div className="column-row">
+                {columns.map((col) => (
+                  <div key={`column-${col}`} className="column">
+                    {col === 'MID' ? (
+                      <>
                         <Locker 
-                          key={lockerId}
-                          size="S" 
-                          lockerCode={lockerId} 
+                          size="L" 
+                          lockerCode="MID1" 
                           onContextMenu={handleContextMenu}
                           onClick={handleLockerClick}
-                          isSelected={selectedLockers.has(lockerId)}
+                          isSelected={selectedLockers.has('MID1')}
                         />
-                      ))}
-                    </div>
-                    <Locker 
-                      size="L" 
-                      lockerCode="MID8" 
-                      onContextMenu={handleContextMenu}
-                      onClick={handleLockerClick}
-                      isSelected={selectedLockers.has('MID8')}
-                    />
-                  </>
-                ) : (
-                  columnLayouts[col as ColumnName].map((config, index) => (
-                    <Locker
-                      key={`${col}-${index}`}
-                      size={config.size}
-                      lockerCode={`${col}${index + 1}`}
-                      onContextMenu={handleContextMenu}
-                      onClick={handleLockerClick}
-                      isSelected={selectedLockers.has(`${col}${index + 1}`)}
-                      isEmpty={config.isEmpty}
-                      hasMultipleParcels={config.hasMultipleParcels}
-                      parcels={config.parcels}
-                      isComparison={config.isComparison}
-                      comparisonState={config.comparisonState}
-                    />
-                  ))
-                )}
+                        <div className="service-section">
+                          <div className="service">Service</div>
+                          <div className="steering">Steering</div>
+                        </div>
+                        <div className="small-lockers">
+                          {['MID4', 'MID5', 'MID6', 'MID7'].map(lockerId => (
+                            <Locker 
+                              key={lockerId}
+                              size="S" 
+                              lockerCode={lockerId} 
+                              onContextMenu={handleContextMenu}
+                              onClick={handleLockerClick}
+                              isSelected={selectedLockers.has(lockerId)}
+                            />
+                          ))}
+                        </div>
+                        <Locker 
+                          size="L" 
+                          lockerCode="MID8" 
+                          onContextMenu={handleContextMenu}
+                          onClick={handleLockerClick}
+                          isSelected={selectedLockers.has('MID8')}
+                        />
+                      </>
+                    ) : (
+                      columnLayouts[col as ColumnName].map((config, index) => (
+                        <Locker
+                          key={`${col}-${index}`}
+                          size={config.size}
+                          lockerCode={`${col}${index + 1}`}
+                          onContextMenu={handleContextMenu}
+                          onClick={handleLockerClick}
+                          isSelected={selectedLockers.has(`${col}${index + 1}`)}
+                          isEmpty={config.isEmpty}
+                          hasMultipleParcels={config.hasMultipleParcels}
+                          parcels={config.parcels}
+                          isComparison={config.isComparison}
+                          comparisonState={config.comparisonState}
+                        />
+                      ))
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
+          
           {showDetailsTable && selectedLockers.size > 0 && (
-            <DetailsTable detailsMap={lockerDetailsRef.current} selectedLockers={Array.from(selectedLockers)} />
+            <div className="details-table-wrapper">
+              <DetailsTable detailsMap={lockerDetailsRef.current} selectedLockers={Array.from(selectedLockers)} />
+            </div>
           )}
         </div>
       </div>

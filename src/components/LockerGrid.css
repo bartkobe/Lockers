@@ -271,7 +271,7 @@ html, body {
 }
 
 .locker.occupied .locker-content {
-  background-color: #4CAF50;
+  background-color: #70ce72;
 }
 
 .locker.empty .locker-content {
@@ -590,10 +590,10 @@ textarea.form-control {
 
 .legend-container {
   position: relative;
-  z-index: 3;
+  z-index: 1000;
   height: 100%;
-  flex-shrink: 0; /* Prevent legend from shrinking */
-  width: auto; /* Allow natural width */
+  flex-shrink: 0;
+  width: auto;
 }
 
 .action-buttons {
@@ -611,7 +611,7 @@ textarea.form-control {
   border: 1px solid #e9ecef;
   border-radius: 6px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  z-index: 1;
+  z-index: 1001;
   width: max-content;
 }
 
@@ -716,7 +716,7 @@ textarea.form-control {
   font-size: 0.75rem;
   font-weight: 500;
   white-space: nowrap;
-  z-index: 1500;
+  z-index: 2000;
   pointer-events: none;
 }
 
@@ -736,6 +736,7 @@ textarea.form-control {
   flex-direction: column;
   align-items: flex-start;
   margin-top: 2.5rem;
+  margin-right: 1.5rem;
 }
 
 /* Add styles for merged headers */
