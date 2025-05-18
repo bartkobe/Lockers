@@ -2,11 +2,14 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  height: 497px;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 0.4rem;
   position: relative;
   z-index: 1001;
+  box-sizing: border-box;
+  width: 160px;
+  overflow: visible;
+  isolation: isolate;
 }
 
 .action-buttons,
@@ -22,22 +25,26 @@
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
   gap: 0.4rem;
-  padding: 0.7rem;
+  padding: 0.5rem;
   background: white;
   border: 1px solid #e9ecef;
   border-radius: 6px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   justify-items: center;
   position: relative;
-  z-index: 1000;
+  z-index: 1002;
+  overflow: visible;
+  width: 100%;
 }
 
 .empty-container {
-  padding: 0.65rem;
+  padding: 0.5rem;
   background: white;
   border: 1px solid #e9ecef;
   border-radius: 6px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  overflow: visible;
 }
 
 .info-table {
@@ -97,14 +104,15 @@
 }
 
 .legend-container {
-  align-content: flex-end;
-  margin-bottom: 0;
   position: relative;
-  z-index: 1000;
+  z-index: 1002;
+  display: block;
+  width: 100%;
+  overflow: visible;
 }
 
 .legend {
-  padding: 0.65rem;
+  padding: 0.5rem;
   background: white;
   border: 1px solid #e9ecef;
   border-radius: 6px;
@@ -114,6 +122,8 @@
   margin: 0;
   width: 100%;
   box-sizing: border-box;
+  display: block;
+  overflow: visible;
 }
 
 .legend h3 {
@@ -128,8 +138,10 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(3, 1fr);
-  grid-gap: 5px;
+  grid-gap: 3px;
   width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
 }
 
 .legend-item {
@@ -141,19 +153,17 @@
   border-radius: 4px;
   cursor: pointer;
   transition: transform 0.15s ease;
-  height: 22px;
+  height: 18px;
   width: 100%;
-  z-index: 1000;
 }
 
 .legend-item:hover {
-  z-index: 1000;
   transform: scale(1.15);
 }
 
 .legend-color {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 3px;
 }
@@ -206,7 +216,6 @@
   transition: all 0.2s ease;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.03);
   position: relative;
-  z-index: 1000;
 }
 
 .components-remote-control-button:hover,
@@ -247,11 +256,8 @@
   opacity: 0.8;
 }
 
-.legend-tooltip, .refresh-tooltip {
-  position: absolute;
-  top: -35px;
-  left: 50%;
-  transform: translateX(-50%);
+.legend-tooltip, .refresh-tooltip, .menu-tooltip {
+  position: fixed;
   background-color: rgba(0, 0, 0, 0.8);
   color: white;
   padding: 3px 8px;
@@ -259,9 +265,24 @@
   font-size: 0.7rem;
   font-weight: 500;
   white-space: nowrap;
-  z-index: 9999;
+  z-index: 10000;
   pointer-events: none;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transform: none;
+  margin-top: -35px;
+}
+
+.menu-tooltip {
+  margin-left: 5px;
+}
+
+/* Action button tooltip positioning */
+.action-buttons .refresh-tooltip,
+.action-buttons .legend-tooltip {
+  margin-top: -40px;
+  z-index: 10001;
+  position: fixed;
+  transform: none;
 }
 
 .modal-overlay {
@@ -274,7 +295,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
+  z-index: 1000;
 }
 
 .modal-content {
@@ -441,7 +462,9 @@ input[type="number"].form-control::-webkit-inner-spin-button {
 }
 
 .grid-container {
-  display: flex;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   background: white;
   border: 1px solid #e9ecef;
   margin: 0 0 1rem 0;
@@ -484,9 +507,6 @@ input[type="number"].form-control::-webkit-inner-spin-button {
 }
 
 .column {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
   border-right: 1px solid #e9ecef;
 }
 
@@ -514,4 +534,37 @@ input[type="number"].form-control::-webkit-inner-spin-button {
   background: transparent;
   box-sizing: border-box;
   visibility: hidden;
+}
+
+/* Reset all overflow properties */
+.menu-container,
+.action-buttons,
+.empty-container,
+.legend-container,
+.legend,
+.legend-items {
+  overflow: initial;
+}
+
+/* Reset z-index hierarchy */
+.action-buttons,
+.legend-container,
+.legend,
+.legend-items,
+.legend-item,
+.components-remote-control-button,
+.check-proximity-code-button,
+.reset-button,
+.check-connection-machine-button,
+.check-connection-router-button,
+.change-locker-button,
+.change-parcel-locker-button,
+.reload-locker-button {
+  position: relative;
+  z-index: auto;
+}
+
+/* Ensure menu tooltips appear above other content */
+.menu-container {
+  z-index: 1001;
 } 

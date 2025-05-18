@@ -200,17 +200,17 @@ const Legend: React.FC = () => {
 
   const statuses = [
     { name: 'empty', color: 'rgba(0, 0, 0, 0.05)' },
-    { name: 'in use', color: '#4CAF50' },
-    { name: 'expired parcels', color: '#FFD700' },
-    { name: 'Claimed', color: '#4B0082' },
-    { name: 'soiled', color: '#8B4513' },
-    { name: 'damaged', color: '#FF0000' },
-    { name: 'Inspection', color: '#98FF98' },
+    { name: 'in use', color: '#7FB883' },
+    { name: 'expired parcels', color: '#E6C87D' },
+    { name: 'Claimed', color: '#8B7B9F' },
+    { name: 'soiled', color: '#B89F8E' },
+    { name: 'damaged', color: '#E6A4A4' },
+    { name: 'Inspection', color: '#B8D8B8' },
     { name: 'Unclosed', color: '#FFFFFF', hasBlackBorder: true },
-    { name: 'Damaged and Inspection', color: '#FF7F50' },
-    { name: 'Damaged and Soiled', color: '#40E0D0' },
-    { name: 'Soiled and Inspection', color: '#8B0000' },
-    { name: 'Damaged, Soiled and Inspection', color: '#8A2BE2' }
+    { name: 'Damaged and Inspection', color: '#E6B8A4' },
+    { name: 'Damaged and Soiled', color: '#A4D8D8' },
+    { name: 'Soiled and Inspection', color: '#B88E8E' },
+    { name: 'Damaged, Soiled and Inspection', color: '#B8A4D8' }
   ];
 
   return (
