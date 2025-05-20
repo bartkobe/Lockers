@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import './LockerHeader.css';
 import Tooltip from './Tooltip';
 
@@ -78,47 +79,51 @@ const LockerHeader: React.FC<{ lockerInfo: LockerInfo }> = ({ lockerInfo }) => {
   };
 
   return (
-    <header className="locker-header">
-      <div className="header-main">
-        <div className="header-title">
-          <h1>Parcel locker {lockerInfo.id}</h1>
-          <div className="status-badge">
-            <span className="status-indicator"></span>
-            {lockerInfo.status}
+    <>
+      <header className="locker-header">
+        <div className="header-main">
+          <div className="header-title">
+            <h1>Parcel locker {lockerInfo.id}</h1>
+            <div className="status-badge">
+              <span className="status-indicator"></span>
+              {lockerInfo.status}
+            </div>
+          </div>
+          <div className="header-details">
+            <div className="detail-group location-group">
+              <label>Location</label>
+              <Tooltip text={lockerInfo.locationDescription} position="bottom">
+                <div className="location-value">
+                  <span className="location-icon">📍</span>
+                  <span 
+                    className="clickable-address"
+                    onClick={handleAddressClick}
+                    style={{ cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    {lockerInfo.location.country}, {lockerInfo.location.region}, {lockerInfo.location.city}, {lockerInfo.location.postalCode}, {lockerInfo.location.street}, {lockerInfo.location.number}
+                  </span>
+                </div>
+              </Tooltip>
+            </div>
+            <div className="detail-group">
+              <label>Series</label>
+              <span>{lockerInfo.series}</span>
+            </div>
+            <div className="detail-group">
+              <label>Agency</label>
+              <span>{lockerInfo.agency}</span>
+            </div>
           </div>
         </div>
-        <div className="header-details">
-          <div className="detail-group location-group">
-            <label>Location</label>
-            <Tooltip text={lockerInfo.locationDescription} position="bottom">
-              <div className="location-value">
-                <span className="location-icon">📍</span>
-                <span 
-                  className="clickable-address"
-                  onClick={handleAddressClick}
-                  style={{ cursor: 'pointer', textDecoration: 'underline' }}
-                >
-                  {lockerInfo.location.country}, {lockerInfo.location.region}, {lockerInfo.location.city}, {lockerInfo.location.postalCode}, {lockerInfo.location.street}, {lockerInfo.location.number}
-                </span>
-              </div>
-            </Tooltip>
-          </div>
-          <div className="detail-group">
-            <label>Series</label>
-            <span>{lockerInfo.series}</span>
-          </div>
-          <div className="detail-group">
-            <label>Agency</label>
-            <span>{lockerInfo.agency}</span>
-          </div>
-        </div>
-      </div>
-      <MapModal
-        isOpen={isMapModalOpen}
-        onClose={() => setIsMapModalOpen(false)}
-        address={lockerInfo.location}
-      />
-    </header>
+      </header>
+      {isMapModalOpen && ReactDOM.createPortal(
+        <MapModal
+          isOpen={isMapModalOpen}
+          onClose={() => setIsMapModalOpen(false)}
+          address={lockerInfo.location}
+        />, document.body
+      )}
+    </>
   );
 };
 

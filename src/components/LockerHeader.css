@@ -228,10 +228,11 @@
   color: #1d4ed8;
 }
 
+/* Remove blur and grayscale for modal-open, keep only pointer-events and user-select if needed */
 body.modal-open .menu-container,
 body.modal-open .locker-header,
 body.modal-open .locker-grid {
-  filter: blur(2px) grayscale(0.5) opacity(0.5);
+  /* No blur, no grayscale, no opacity */
   pointer-events: none;
   user-select: none;
 }
