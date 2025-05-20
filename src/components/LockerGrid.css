@@ -87,6 +87,7 @@ html, body {
   white-space: nowrap;
   width: 120px;
   flex: 0 0 120px;
+  transition: all 0.2s ease;
 }
 
 .grid-container {
@@ -1288,5 +1289,121 @@ span[class*="tooltip"],
   word-break: keep-all !important;
   z-index: 9999999 !important;
   position: fixed !important;
+}
+
+/* Courier Search container */
+.courier-search-container {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.column.active-search-column {
+  background-color: rgba(33, 150, 243, 0.1);
+  border: 2px solid #2196F3;
+  border-radius: 4px;
+}
+
+.locker.search-mode {
+  cursor: pointer;
+}
+
+.locker.search-mode:hover {
+  border: 2px solid #4CAF50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+}
+
+.locker.searched::after {
+  content: "✓";
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: #4CAF50;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+}
+
+.parcel-life-modal {
+  max-width: 600px;
+  width: 90%;
+}
+
+.parcel-life-modal .parcel-number {
+  font-size: 1.1em;
+  font-weight: 500;
+  color: #2563eb;
+  margin-bottom: 20px;
+}
+
+.lifecycle-timeline {
+  position: relative;
+  padding: 20px 0;
+}
+
+.lifecycle-timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 120px;
+  width: 2px;
+  background-color: #e5e7eb;
+}
+
+.lifecycle-event {
+  display: flex;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.lifecycle-event:last-child {
+  margin-bottom: 0;
+}
+
+.event-timestamp {
+  width: 120px;
+  padding-right: 20px;
+  text-align: right;
+  color: #6b7280;
+  font-size: 0.9em;
+}
+
+.event-content {
+  flex: 1;
+  padding-left: 20px;
+  position: relative;
+}
+
+.event-content::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #2563eb;
+  border: 2px solid white;
+  box-shadow: 0 0 0 2px #2563eb;
+}
+
+.event-status {
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.event-location {
+  color: #6b7280;
+  font-size: 0.9em;
 }
 

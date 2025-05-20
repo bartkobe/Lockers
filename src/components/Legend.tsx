@@ -14,6 +14,10 @@ interface ChangeParcelLockerModalProps {
   onSelect: (lockerId: string) => void;
 }
 
+interface LegendProps {
+  onEnterSearchMode?: () => void;
+}
+
 const ChangeParcelLockerModal: React.FC<ChangeParcelLockerModalProps> = ({ isOpen, onClose, onSelect }) => {
   const [lockerId, setLockerId] = useState('');
 
@@ -128,7 +132,7 @@ const ChangeLockerModal: React.FC<ChangeLockerModalProps> = ({ isOpen, onClose, 
   );
 };
 
-const Legend: React.FC = () => {
+const Legend: React.FC<LegendProps> = ({ onEnterSearchMode }) => {
   const [hoveredStatus, setHoveredStatus] = useState<string | null>(null);
   const [isChangeParcelLockerModalOpen, setIsChangeParcelLockerModalOpen] = useState(false);
   const [isChangeLockerModalOpen, setIsChangeLockerModalOpen] = useState(false);
@@ -281,6 +285,15 @@ const Legend: React.FC = () => {
           </button>
         </Tooltip>
         
+        <Tooltip text="Search Mode">
+          <button 
+            className="search-mode-button"
+            onClick={onEnterSearchMode}
+          >
+            <img src="/images/search.svg" alt="Search Mode" />
+          </button>
+        </Tooltip>
+        
         <div className="button-placeholder"></div>
       </div>
 
@@ -313,7 +326,7 @@ const Legend: React.FC = () => {
         <div className="legend" role="region" aria-label="Status Legend">
           <div className="legend-items">
             {statuses.map((status, index) => (
-              <Tooltip key={index} text={status.name}>
+              <Tooltip key={status.name} text={status.name}>
                 <div 
                   className="legend-item"
                   role="listitem"

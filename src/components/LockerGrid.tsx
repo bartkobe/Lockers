@@ -2,9 +2,10 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import './LockerGrid.css';
 import Legend from './Legend';
 import Tooltip from './Tooltip';
+import { CourierSearch, SearchTokenModal, SearchModeBanner, SearchModeControls, OpenLockersModal } from './CourierSearch';
 
 type LockerSize = 'S' | 'M' | 'L';
-type ColumnName = '4L' | '3L' | '2L' | '1L' | 'MID' | '1R' | '2R' | '3R' | '4R' | '5R' | '6R' | '7R' | '8R';
+type ColumnName = '1L' | '2L' | '3L' | '4L' | 'MID' | '1R' | '2R' | '3R' | '4R' | '5R' | '6R' | '7R' | '8R';
 
 type LockerStatus = 
   | 'empty' 
@@ -62,6 +63,8 @@ interface LockerProps {
   isSelected: boolean;
   hasMultipleParcels?: boolean;
   parcels?: string[];
+  isInSearchMode?: boolean;
+  isSearched?: boolean;
 }
 
 interface LockerDetails {
@@ -231,6 +234,52 @@ const ChangeExpirationModal: React.FC<ChangeExpirationModalProps> = ({ isOpen, o
   );
 };
 
+interface ParcelLifeModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  parcelNumber: string;
+}
+
+const ParcelLifeModal: React.FC<ParcelLifeModalProps> = ({ isOpen, onClose, parcelNumber }) => {
+  if (!isOpen) return null;
+
+  // Sample lifecycle events - in a real app, this would come from an API
+  const lifecycleEvents = [
+    { timestamp: '2024-03-15 10:30:00', status: 'Parcel created', location: 'Warsaw Hub' },
+    { timestamp: '2024-03-15 14:45:00', status: 'In transit', location: 'Warsaw Hub' },
+    { timestamp: '2024-03-16 09:15:00', status: 'Arrived at destination', location: 'Krakow Hub' },
+    { timestamp: '2024-03-16 11:30:00', status: 'Out for delivery', location: 'Krakow Hub' },
+    { timestamp: '2024-03-16 15:20:00', status: 'Delivered to locker', location: 'Krakow Locker 123' },
+    { timestamp: '2024-03-17 08:45:00', status: 'Customer notification sent', location: 'System' },
+    { timestamp: '2024-03-17 16:30:00', status: 'Parcel collected', location: 'Krakow Locker 123' }
+  ];
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content parcel-life-modal">
+        <h2>Parcel Lifecycle</h2>
+        <div className="modal-body">
+          <p className="parcel-number">Parcel {parcelNumber}</p>
+          <div className="lifecycle-timeline">
+            {lifecycleEvents.map((event, index) => (
+              <div key={index} className="lifecycle-event">
+                <div className="event-timestamp">{event.timestamp}</div>
+                <div className="event-content">
+                  <div className="event-status">{event.status}</div>
+                  <div className="event-location">{event.location}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 interface ContextMenuProps {
   x: number;
   y: number;
@@ -240,6 +289,7 @@ interface ContextMenuProps {
   onRemoveParcel: () => void;
   onBlockWithClaim: () => void;
   onChangeExpiration: () => void;
+  onSeeParcelLife: () => void;
 }
 
 const ContextMenu: React.FC<ContextMenuProps> = ({ 
@@ -250,7 +300,8 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   onChangeBox, 
   onRemoveParcel,
   onBlockWithClaim,
-  onChangeExpiration
+  onChangeExpiration,
+  onSeeParcelLife
 }) => {
   const menuStyle = {
     position: 'fixed' as const,
@@ -289,6 +340,8 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
       onBlockWithClaim();
     } else if (action === 'Change Expiration') {
       onChangeExpiration();
+    } else if (action === 'See Parcel Life') {
+      onSeeParcelLife();
     }
     console.log(`${action} for locker ${lockerId}`);
     onClose();
@@ -298,28 +351,44 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     <>
       <div style={menuStyle}>
         <button 
-          style={menuItemStyle} 
+          style={menuItemStyle}
           onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
           onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
-          onClick={() => handleAction('View Details')}
+          onClick={() => handleAction('Inspection On')}
         >
-          View Details
+          Inspection on
         </button>
         <button 
           style={menuItemStyle}
           onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
           onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
-          onClick={() => handleAction('Reset Status')}
+          onClick={() => handleAction('Inspection Off')}
         >
-          Reset Status
+          Inspection off
         </button>
         <button 
           style={menuItemStyle}
           onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
           onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
-          onClick={() => handleAction('Force Sync')}
+          onClick={() => handleAction('Set Damaged')}
         >
-          Force Sync
+          Set damaged
+        </button>
+        <button 
+          style={menuItemStyle}
+          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+          onClick={() => handleAction('Fix Damaged')}
+        >
+          Fix damaged
+        </button>
+        <button 
+          style={menuItemStyle}
+          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+          onClick={() => handleAction('Clean Soiled')}
+        >
+          Clean soiled
         </button>
         <button 
           style={menuItemStyle}
@@ -352,6 +421,14 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
           onClick={() => handleAction('Change Expiration')}
         >
           Change expiration time
+        </button>
+        <button 
+          style={menuItemStyle}
+          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+          onClick={() => handleAction('See Parcel Life')}
+        >
+          See parcel life
         </button>
       </div>
       <div 
@@ -546,13 +623,19 @@ const Locker: React.FC<LockerProps> = ({
   onClick,
   isSelected,
   hasMultipleParcels = false,
-  parcels
+  parcels,
+  isInSearchMode = false,
+  isSearched = false
 }) => {
+  const lockerClassName = `locker size-${size.toLowerCase()} ${isSelected ? 'selected' : ''} ${
+    isInSearchMode ? 'search-mode' : ''
+  } ${isSearched ? 'searched' : ''}`;
+
   if (isComparison && comparisonState) {
     return (
       <Tooltip text={lockerCode} position="top">
         <div 
-          className={`locker size-${size.toLowerCase()} ${isSelected ? 'selected' : ''}`}
+          className={lockerClassName}
           onContextMenu={(e) => onContextMenu(e, lockerCode)}
           onClick={(e) => onClick(e, lockerCode)}
         >
@@ -575,15 +658,22 @@ const Locker: React.FC<LockerProps> = ({
       </Tooltip>
     );
   } else {
+    // Determine the appropriate status and color
+    const status: LockerStatus = isEmpty ? 'empty' : 'in use';
+    const color = statusColors[status];
     const statusClass = isEmpty ? 'empty' : 'occupied';
+    
     return (
       <Tooltip text={lockerCode} position="top">
         <div 
-          className={`locker size-${size.toLowerCase()} ${statusClass} ${isSelected ? 'selected' : ''}`}
+          className={lockerClassName}
           onContextMenu={(e) => onContextMenu(e, lockerCode)}
           onClick={(e) => onClick(e, lockerCode)}
         >
-          <div className="locker-content">
+          <div 
+            className="locker-content"
+            style={{ backgroundColor: color }}
+          >
             {!isEmpty && (
               <>
                 <span className="package">📦</span>
@@ -687,6 +777,19 @@ const LockerGrid: React.FC = () => {
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
   const [isBlockClaimModalOpen, setIsBlockClaimModalOpen] = useState(false);
   const [isExpirationModalOpen, setIsExpirationModalOpen] = useState(false);
+  const [isParcelLifeModalOpen, setIsParcelLifeModalOpen] = useState(false);
+  
+  // Define columns
+  const columns: ColumnName[] = ['4L', '3L', '2L', '1L', 'MID', '1R', '2R', '3R', '4R', '5R', '6R', '7R', '8R'];
+  
+  // Search mode states
+  const [searchModeActive, setSearchModeActive] = useState(false);
+  const [activeSearchColumn, setActiveSearchColumn] = useState<ColumnName | null>(null);
+  const [searchedLockers, setSearchedLockers] = useState<Set<string>>(new Set());
+  const [showTokenModal, setShowTokenModal] = useState(false);
+  const [showOpenLockersModal, setShowOpenLockersModal] = useState(false);
+  const [openLockers, setOpenLockers] = useState<string[]>([]);
+  const [searchToken, setSearchToken] = useState('');
   
   // Create a ref to store the generated data for each locker
   const lockerDetailsRef = useRef<Map<string, LockerDetails[]>>(new Map());
@@ -896,26 +999,21 @@ const LockerGrid: React.FC = () => {
       { size: 'L', hasParcel: true }
     ],
     '7R': [
-      { size: 'L', hasParcel: true },
+      { size: 'L', isEmpty: true },
       { size: 'M', isEmpty: true },
-      { size: 'M', hasParcel: true },
       { size: 'M', isEmpty: true },
-      { size: 'M', hasParcel: true },
       { size: 'M', isEmpty: true },
-      { size: 'L', hasParcel: true }
+      { size: 'M', isEmpty: true },
+      { size: 'M', isEmpty: true },
+      { size: 'L', isEmpty: true }
     ],
     '8R': [
-      { size: 'L', hasParcel: true },
-      { size: 'S', hasParcel: true },
-      { size: 'S', isEmpty: true },
-      { size: 'S', hasParcel: true },
-      { size: 'S', isEmpty: true },
-      { size: 'S', hasParcel: true },
-      { size: 'S', isEmpty: true },
-      { size: 'S', hasParcel: true },
-      { size: 'S', isEmpty: true },
-      { size: 'S', hasParcel: true },
-      { size: 'S', isEmpty: true },
+      { size: 'L', isEmpty: true },
+      { size: 'M', isEmpty: true },
+      { size: 'M', isEmpty: true },
+      { size: 'M', isEmpty: true },
+      { size: 'M', isEmpty: true },
+      { size: 'M', isEmpty: true },
       { size: 'L', isEmpty: true }
     ]
   };
@@ -979,9 +1077,125 @@ const LockerGrid: React.FC = () => {
     setContextMenu({ x: event.clientX, y: event.clientY, lockerId });
   }, []);
 
-  // Update handleLockerClick to ensure clicking a selected locker unselects it
+  // Functions for search mode
+  const handleEnterSearchMode = useCallback(() => {
+    setShowTokenModal(true);
+  }, []);
+
+  const handleTokenModalClose = useCallback(() => {
+    setShowTokenModal(false);
+  }, []);
+
+  // Start search mode
+  const startSearchMode = useCallback((token: string) => {
+    setSearchToken(token);
+    setSearchModeActive(true);
+    setActiveSearchColumn(null); // No column selected initially - agent will choose
+    setSearchedLockers(new Set<string>());
+    setShowTokenModal(false);
+  }, []);
+  
+  // Complete search
+  const completeSearch = useCallback(() => {
+    setSearchModeActive(false);
+    setSearchToken('');
+    setActiveSearchColumn(null);
+    setSearchedLockers(new Set<string>());
+  }, []);
+
+  // Function to open a locker (simulated for demo)
+  const handleLockerOpen = useCallback((lockerId: string) => {
+    console.log(`Opening locker: ${lockerId}`);
+    // In a real application, this would trigger an API call to open the locker
+    
+    // Mark locker as searched
+    const updatedSearched = new Set(searchedLockers);
+    updatedSearched.add(lockerId);
+    setSearchedLockers(updatedSearched);
+    
+    alert(`Locker ${lockerId} opened`);
+  }, [searchedLockers]);
+
+  // Function to get open lockers (simulated for demo)
+  const getOpenLockers = useCallback(async (): Promise<string[]> => {
+    // In a real application, this would be an API call to check which lockers are open
+    // For demo purposes, we'll randomly select a few lockers as "open"
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // For demo, randomly determine if lockers are open
+        if (Math.random() > 0.5) {
+          resolve([]);  // All lockers closed
+        } else {
+          // Random set of open lockers in the active column
+          const randomLockers: string[] = [];
+          if (activeSearchColumn) {
+            const numOpen = Math.floor(Math.random() * 3) + 1;  // 1-3 open lockers
+            for (let i = 0; i < numOpen; i++) {
+              const randomIdx = Math.floor(Math.random() * columnLayouts[activeSearchColumn].length) + 1;
+              randomLockers.push(`${activeSearchColumn}${randomIdx}`);
+            }
+          }
+          resolve(randomLockers);
+        }
+      }, 1000);  // Simulate API delay
+    });
+  }, [activeSearchColumn, columnLayouts]);
+
+  // Check for open lockers
+  const checkOpenLockers = useCallback(async () => {
+    try {
+      const openLockersResult = await getOpenLockers();
+      setOpenLockers(openLockersResult);
+      setShowOpenLockersModal(true);
+    } catch (error) {
+      console.error('Failed to check open lockers:', error);
+      alert('Failed to check open lockers. Please try again.');
+    }
+  }, [getOpenLockers]);
+  
+  // Proceed to next column
+  const goToNextColumn = useCallback(async () => {
+    // First check if there are any open lockers
+    try {
+      const openLockersResult = await getOpenLockers();
+      
+      if (openLockersResult.length > 0) {
+        // There are open lockers, show modal
+        setOpenLockers(openLockersResult);
+        setShowOpenLockersModal(true);
+        return;
+      }
+      
+      // All lockers closed, proceed to next column
+      if (activeSearchColumn) {
+        // Use the same column order as defined in the columns array
+        const currentIndex = columns.indexOf(activeSearchColumn);
+        if (currentIndex < columns.length - 1) {
+          const nextColumn = columns[currentIndex + 1];
+          setActiveSearchColumn(nextColumn);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to check open lockers:', error);
+      alert('Failed to check open lockers before proceeding. Please try again.');
+    }
+  }, [activeSearchColumn, getOpenLockers, columns]);
+
+  // Update handleLockerClick to handle search mode clicks
   const handleLockerClick = useCallback((event: React.MouseEvent, lockerId: string) => {
     event.preventDefault();
+    
+    // If in search mode, handle differently
+    if (searchModeActive && activeSearchColumn) {
+      // Check if locker belongs to active column
+      const lockerColumn = lockerId.slice(0, lockerId.length > 3 ? 3 : 2) as ColumnName;
+      
+      if (lockerColumn === activeSearchColumn) {
+        // Open the locker
+        handleLockerOpen(lockerId);
+        return;
+      }
+    }
     
     // Fix type error by checking if the locker ID is valid before indexing
     const colId = lockerId.slice(0, 2) as ColumnName;
@@ -1068,7 +1282,7 @@ const LockerGrid: React.FC = () => {
         setShowDetailsTable(true);
       }
     }
-  }, [getLockerDetails, selectedLockers, columnLayouts]);
+  }, [getLockerDetails, selectedLockers, columnLayouts, searchModeActive, activeSearchColumn, handleLockerOpen]);
 
   // Clear selection when clicking outside
   useEffect(() => {
@@ -1138,12 +1352,70 @@ const LockerGrid: React.FC = () => {
     setIsExpirationModalOpen(false);
   }, []);
 
-  const columns: ColumnName[] = ['4L', '3L', '2L', '1L', 'MID', '1R', '2R', '3R', '4R', '5R', '6R', '7R', '8R'];
+  const handleSeeParcelLife = useCallback(() => {
+    setIsParcelLifeModalOpen(true);
+  }, []);
+
+  const handleParcelLifeModalClose = useCallback(() => {
+    setIsParcelLifeModalOpen(false);
+  }, []);
+
+  // Function to switch to a specific column in search mode and open all lockers in that column
+  const switchToColumn = useCallback(async (targetColumn: ColumnName) => {
+    // Only allow column switching in search mode
+    if (!searchModeActive || targetColumn === activeSearchColumn) return;
+    
+    // If we already have an active column, check if it has open lockers before allowing the switch
+    if (activeSearchColumn) {
+      try {
+        const openLockersResult = await getOpenLockers();
+        
+        if (openLockersResult.length > 0) {
+          // There are open lockers, show modal
+          setOpenLockers(openLockersResult);
+          setShowOpenLockersModal(true);
+          return;
+        }
+      } catch (error) {
+        console.error('Failed to check open lockers:', error);
+        alert('Failed to check open lockers before switching columns. Please try again.');
+        return;
+      }
+    }
+    
+    // All lockers closed or no active column, switch to selected column
+    setActiveSearchColumn(targetColumn);
+    
+    // Open all lockers in the selected column at once
+    // In a real application, this would trigger an API call to open all lockers in the column
+    alert(`Opening all lockers in column ${targetColumn}`);
+    
+    // Mark all lockers in column as searched
+    const updatedSearched = new Set(searchedLockers);
+    // Find all lockers in this column and mark them
+    const columnLockers = document.querySelectorAll(`.column[data-column="${targetColumn}"] .locker`);
+    columnLockers.forEach((locker: Element) => {
+      const lockerId = locker.getAttribute('data-locker-id');
+      if (lockerId) {
+        updatedSearched.add(lockerId);
+      }
+    });
+    setSearchedLockers(updatedSearched);
+    
+  }, [searchModeActive, activeSearchColumn, getOpenLockers, searchedLockers]);
   
   const renderColumnHeaders = (columnName: ColumnName) => {
+    const isActive = columnName === activeSearchColumn;
+    const isClickable = searchModeActive && !isActive;
+    
     return (
-      <Tooltip text={columnName} position="top">
-        <div className="column-header">{columnName}</div>
+      <Tooltip text={searchModeActive ? `Click to select column ${columnName}` : columnName} position="top">
+        <div 
+          className={`column-header ${isClickable ? 'clickable-header' : ''} ${isActive ? 'active-header' : ''}`}
+          onClick={() => isClickable && switchToColumn(columnName)}
+        >
+          {columnName}
+        </div>
       </Tooltip>
     );
   };
@@ -1151,7 +1423,7 @@ const LockerGrid: React.FC = () => {
   return (
     <div className="locker-grid" onContextMenu={(e) => e.preventDefault()}>
       <div className="grid-layout">
-        <Legend />
+        <Legend onEnterSearchMode={handleEnterSearchMode} />
         <div className="content-area">
           <div className="scrollable-wrapper">
             <div className="grid-main">
@@ -1162,39 +1434,52 @@ const LockerGrid: React.FC = () => {
               </div>
               <div className="column-row">
                 {columns.map((col) => (
-                  <div key={`column-${col}`} className="column">
+                                <div 
+                key={`column-${col}`} 
+                className={`column ${activeSearchColumn === col ? 'active-search-column' : ''}`}
+                data-column={col}
+              >
                     {col === 'MID' ? (
                       <>
-                        <Locker 
-                          size="L" 
-                          lockerCode="MID1" 
-                          onContextMenu={handleContextMenu}
-                          onClick={handleLockerClick}
-                          isSelected={selectedLockers.has('MID1')}
-                        />
+                                                  <Locker 
+                            size="L" 
+                            lockerCode="MID1" 
+                            onContextMenu={handleContextMenu}
+                            onClick={handleLockerClick}
+                            isSelected={selectedLockers.has('MID1')}
+                            isInSearchMode={searchModeActive && activeSearchColumn === 'MID'}
+                            isSearched={searchedLockers.has('MID1')}
+                            data-locker-id="MID1"
+                          />
                         <div className="service-section">
                           <div className="service">Service</div>
                           <div className="steering">Steering</div>
                         </div>
                         <div className="small-lockers">
                           {['MID4', 'MID5', 'MID6', 'MID7'].map(lockerId => (
-                            <Locker 
-                              key={lockerId}
-                              size="S" 
-                              lockerCode={lockerId} 
-                              onContextMenu={handleContextMenu}
-                              onClick={handleLockerClick}
-                              isSelected={selectedLockers.has(lockerId)}
-                            />
+                                                      <Locker 
+                            key={lockerId}
+                            size="S" 
+                            lockerCode={lockerId} 
+                            onContextMenu={handleContextMenu}
+                            onClick={handleLockerClick}
+                            isSelected={selectedLockers.has(lockerId)}
+                            isInSearchMode={searchModeActive && activeSearchColumn === 'MID'}
+                            isSearched={searchedLockers.has(lockerId)}
+                            data-locker-id={lockerId}
+                          />
                           ))}
                         </div>
-                        <Locker 
-                          size="L" 
-                          lockerCode="MID8" 
-                          onContextMenu={handleContextMenu}
-                          onClick={handleLockerClick}
-                          isSelected={selectedLockers.has('MID8')}
-                        />
+                                                  <Locker 
+                            size="L" 
+                            lockerCode="MID8" 
+                            onContextMenu={handleContextMenu}
+                            onClick={handleLockerClick}
+                            isSelected={selectedLockers.has('MID8')}
+                            isInSearchMode={searchModeActive && activeSearchColumn === 'MID'}
+                            isSearched={searchedLockers.has('MID8')}
+                            data-locker-id="MID8"
+                          />
                       </>
                     ) : (
                       columnLayouts[col as ColumnName].map((config, index) => (
@@ -1210,6 +1495,9 @@ const LockerGrid: React.FC = () => {
                           parcels={config.parcels}
                           isComparison={config.isComparison}
                           comparisonState={config.comparisonState}
+                          isInSearchMode={searchModeActive && activeSearchColumn === col}
+                          isSearched={searchedLockers.has(`${col}${index + 1}`)}
+                          data-locker-id={`${col}${index + 1}`}
                         />
                       ))
                     )}
@@ -1226,6 +1514,36 @@ const LockerGrid: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Search Mode Components */}
+      {searchModeActive && (
+        <>
+          <SearchModeBanner 
+            activeColumn={activeSearchColumn} 
+            onCompleteSearch={completeSearch} 
+          />
+          <SearchModeControls 
+            activeColumn={activeSearchColumn}
+            onNextColumn={goToNextColumn}
+            onCheckOpenLockers={checkOpenLockers}
+            onCompleteSearch={completeSearch}
+          />
+        </>
+      )}
+      
+      <SearchTokenModal 
+        isOpen={showTokenModal} 
+        onClose={handleTokenModalClose} 
+        onSubmit={startSearchMode}
+      />
+      
+      <OpenLockersModal 
+        isOpen={showOpenLockersModal}
+        openLockers={openLockers}
+        onClose={() => setShowOpenLockersModal(false)}
+      />
+
+      {/* Existing Modals */}
       {contextMenu && (
         <ContextMenu
           x={contextMenu.x}
@@ -1236,6 +1554,7 @@ const LockerGrid: React.FC = () => {
           onRemoveParcel={handleRemoveParcel}
           onBlockWithClaim={handleBlockWithClaim}
           onChangeExpiration={handleChangeExpiration}
+          onSeeParcelLife={handleSeeParcelLife}
         />
       )}
       <ChangeBoxModal
@@ -1258,6 +1577,11 @@ const LockerGrid: React.FC = () => {
         isOpen={isExpirationModalOpen}
         onClose={handleExpirationModalClose}
         onSave={handleExpirationModalSave}
+        parcelNumber="663400868586300013163881"
+      />
+      <ParcelLifeModal
+        isOpen={isParcelLifeModalOpen}
+        onClose={handleParcelLifeModalClose}
         parcelNumber="663400868586300013163881"
       />
     </div>
