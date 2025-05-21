@@ -182,13 +182,13 @@
   cursor: not-allowed;
 }
 
-/* Search mode banner */
+/* Search mode banner - Transparent Overlay */
 .search-mode-banner {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  background-color: #2196F3;
+  background-color: rgba(33, 150, 243, 0.85); /* Semi-transparent blue */
   color: white;
   padding: 10px 20px;
   display: flex;
@@ -196,7 +196,10 @@
   align-items: center;
   width: 100%;
   box-sizing: border-box;
-  z-index: 1500;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(2px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .search-info {
@@ -221,27 +224,88 @@
   border-radius: 4px;
   cursor: pointer;
   font-weight: 500;
+  transition: background-color 0.2s;
 }
 
 .btn-complete-search:hover {
   background-color: #e68a00;
 }
 
-/* Search controls */
+/* Search controls - Transparent Overlay */
 .search-mode-controls {
-  position: fixed;
-  top: 44px;
+  position: absolute;
+  top: 46px; /* Positioned right below the banner */
   left: 0;
   right: 0;
   display: flex;
   justify-content: space-between;
   gap: 10px;
   padding: 10px 20px;
-  background-color: #f1f1f1;
+  background-color: rgba(241, 241, 241, 0.85); /* Semi-transparent light gray */
   align-items: center;
-  z-index: 1500;
+  z-index: 99;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(2px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+/* Make grid content area aware of the overlay without moving it */
+.grid-main {
+  position: relative;
+  z-index: 1;
+}
+
+/* Search mode highlight for columns */
+.column.active-search-column {
+  background-color: rgba(255, 140, 0, 0.35);
+  border: 3px solid #FF7800;
+  box-shadow: 0 0 15px rgba(255, 120, 0, 0.6);
+}
+
+/* Clickable column headers */
+.column-header.clickable-header {
+  cursor: pointer;
+  background-color: #f8f9fa;
+  border: 1px dashed #FF7800;
+  transition: all 0.2s ease;
+}
+
+.column-header.clickable-header:hover {
+  background-color: rgba(255, 140, 0, 0.15);
+  border: 1px solid #FF7800;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(255, 120, 0, 0.3);
+}
+
+.column-header.active-header {
+  background-color: #FF7800;
+  color: white;
+  font-weight: bold;
+  border: 1px solid #FF5500;
+}
+
+/* Search mode highlight for lockers */
+.locker.searched {
+  position: relative;
+}
+
+.locker.searched::after {
+  content: "✓";
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: #4CAF50;
+  color: white;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+}
+
+/* Search mode buttons */
 .search-mode-buttons {
   display: flex;
   gap: 10px;
@@ -299,54 +363,4 @@
   border-radius: 4px;
   box-sizing: border-box;
   margin-top: 5px;
-}
-
-/* Search mode highlight for columns */
-.column.active-search-column {
-  background-color: rgba(255, 140, 0, 0.35);
-  border: 3px solid #FF7800;
-  box-shadow: 0 0 15px rgba(255, 120, 0, 0.6);
-}
-
-/* Clickable column headers */
-.column-header.clickable-header {
-  cursor: pointer;
-  background-color: #f8f9fa;
-  border: 1px dashed #FF7800;
-  transition: all 0.2s ease;
-}
-
-.column-header.clickable-header:hover {
-  background-color: rgba(255, 140, 0, 0.15);
-  border: 1px solid #FF7800;
-  transform: translateY(-2px);
-  box-shadow: 0 2px 5px rgba(255, 120, 0, 0.3);
-}
-
-.column-header.active-header {
-  background-color: #FF7800;
-  color: white;
-  font-weight: bold;
-  border: 1px solid #FF5500;
-}
-
-/* Search mode highlight for lockers */
-.locker.searched {
-  position: relative;
-}
-
-.locker.searched::after {
-  content: "✓";
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background-color: #4CAF50;
-  color: white;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 12px;
 } 

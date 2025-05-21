@@ -80,6 +80,12 @@ export const SearchModeBanner: React.FC<SearchModeBannerProps> = ({ activeColumn
         <span className="search-icon">🔍</span>
         <span className="search-text">SEARCH MODE - Column: {activeColumn || 'None'}</span>
       </div>
+      <button 
+        className="btn-complete-search"
+        onClick={onCompleteSearch}
+      >
+        Exit Search Mode
+      </button>
     </div>
   );
 };
