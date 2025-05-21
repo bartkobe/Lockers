@@ -16,18 +16,6 @@ interface SearchTokenModalProps {
   onSubmit: (token: string) => void;
 }
 
-interface SearchModeBannerProps {
-  activeColumn: ColumnName | null;
-  onCompleteSearch: () => void;
-}
-
-interface SearchModeControlsProps {
-  activeColumn: ColumnName | null;
-  onNextColumn: () => void;
-  onCheckOpenLockers: () => void;
-  onCompleteSearch: () => void;
-}
-
 // Column order for navigation
 const COLUMN_ORDER: ColumnName[] = ['4L', '3L', '2L', '1L', 'MID', '1R', '2R', '3R', '4R', '5R', '6R', '7R', '8R'];
 
@@ -67,63 +55,6 @@ export const SearchTokenModal: React.FC<SearchTokenModalProps> = ({ isOpen, onCl
             Enter Search
           </button>
         </div>
-      </div>
-    </div>
-  );
-};
-
-// Banner displayed when search mode is active
-export const SearchModeBanner: React.FC<SearchModeBannerProps> = ({ activeColumn, onCompleteSearch }) => {
-  return (
-    <div className="search-mode-banner">
-      <div className="search-info">
-        <span className="search-icon">🔍</span>
-        <span className="search-text">SEARCH MODE - Column: {activeColumn || 'None'}</span>
-      </div>
-      <button 
-        className="btn-complete-search"
-        onClick={onCompleteSearch}
-      >
-        Exit Search Mode
-      </button>
-    </div>
-  );
-};
-
-// Controls for search mode navigation
-export const SearchModeControlsProps = {
-  activeColumn: null as ColumnName | null,
-  onNextColumn: () => {},
-  onCheckOpenLockers: () => {},
-  onCompleteSearch: () => {}
-};
-
-export const SearchModeControls: React.FC<typeof SearchModeControlsProps> = ({ 
-  activeColumn, 
-  onNextColumn,
-  onCheckOpenLockers,
-  onCompleteSearch
-}) => {
-  return (
-    <div className="search-mode-controls">
-      <div className="search-mode-buttons">
-        <button 
-          className="btn-check-open" 
-          onClick={onCheckOpenLockers}
-        >
-          Check Open Lockers
-        </button>
-        <button 
-          className="btn-complete-search" 
-          onClick={onCompleteSearch}
-        >
-          Complete Search
-        </button>
-      </div>
-      <div className="column-navigation-hint">
-        <span className="hint-text">
-          Click on any column header to select it and open all lockers
-        </span>
       </div>
     </div>
   );
@@ -286,21 +217,6 @@ export const CourierSearch: React.FC<CourierSearchProps> = ({
       >
         Search Mode
       </button>
-      
-      {searchState.isActive && (
-        <>
-          <SearchModeBanner 
-            activeColumn={searchState.activeColumn} 
-            onCompleteSearch={completeSearch} 
-          />
-          <SearchModeControls 
-            activeColumn={searchState.activeColumn}
-            onNextColumn={goToNextColumn}
-            onCheckOpenLockers={checkOpenLockers}
-            onCompleteSearch={completeSearch}
-          />
-        </>
-      )}
       
       <SearchTokenModal 
         isOpen={showTokenModal} 

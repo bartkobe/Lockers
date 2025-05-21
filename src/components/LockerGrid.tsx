@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import './LockerGrid.css';
 import Legend from './Legend';
 import Tooltip from './Tooltip';
-import { CourierSearch, SearchTokenModal, SearchModeBanner, SearchModeControls, OpenLockersModal } from './CourierSearch';
+import { CourierSearch, SearchTokenModal, OpenLockersModal } from './CourierSearch';
 
 type LockerSize = 'S' | 'M' | 'L';
 type ColumnName = '1L' | '2L' | '3L' | '4L' | 'MID' | '1R' | '2R' | '3R' | '4R' | '5R' | '6R' | '7R' | '8R';
@@ -290,6 +290,8 @@ interface ContextMenuProps {
   onBlockWithClaim: () => void;
   onChangeExpiration: () => void;
   onSeeParcelLife: () => void;
+  searchModeActive: boolean;
+  onOpenLocker: (lockerId: string) => void;
 }
 
 const ContextMenu: React.FC<ContextMenuProps> = ({ 
@@ -301,7 +303,9 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   onRemoveParcel,
   onBlockWithClaim,
   onChangeExpiration,
-  onSeeParcelLife
+  onSeeParcelLife,
+  searchModeActive,
+  onOpenLocker
 }) => {
   const menuStyle = {
     position: 'fixed' as const,
@@ -332,7 +336,9 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   };
 
   const handleAction = (action: string) => {
-    if (action === 'Change Box') {
+    if (action === 'Open Locker') {
+      onOpenLocker(lockerId);
+    } else if (action === 'Change Box') {
       onChangeBox();
     } else if (action === 'Remove Parcel') {
       onRemoveParcel();
@@ -350,6 +356,16 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   return (
     <>
       <div style={menuStyle}>
+        {searchModeActive && (
+          <button 
+            style={menuItemStyle}
+            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+            onClick={() => handleAction('Open Locker')}
+          >
+            Open this locker
+          </button>
+        )}
         <button 
           style={menuItemStyle}
           onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
@@ -794,6 +810,9 @@ const LockerGrid: React.FC = () => {
   // Create a ref to store the generated data for each locker
   const lockerDetailsRef = useRef<Map<string, LockerDetails[]>>(new Map());
 
+  // Add state:
+  const [openedSearchColumns, setOpenedSearchColumns] = useState<Set<ColumnName>>(new Set());
+
   // Define columnLayouts first before using it in getLockerDetails
   const columnLayouts: Record<ColumnName, LockerConfig[]> = {
     '4L': [
@@ -1090,8 +1109,9 @@ const LockerGrid: React.FC = () => {
   const startSearchMode = useCallback((token: string) => {
     setSearchToken(token);
     setSearchModeActive(true);
-    setActiveSearchColumn(null); // No column selected initially - agent will choose
+    setActiveSearchColumn(null);
     setSearchedLockers(new Set<string>());
+    setOpenedSearchColumns(new Set());
     setShowTokenModal(false);
   }, []);
   
@@ -1101,6 +1121,7 @@ const LockerGrid: React.FC = () => {
     setSearchToken('');
     setActiveSearchColumn(null);
     setSearchedLockers(new Set<string>());
+    setOpenedSearchColumns(new Set());
   }, []);
 
   // Function to open a locker (simulated for demo)
@@ -1362,37 +1383,12 @@ const LockerGrid: React.FC = () => {
 
   // Function to switch to a specific column in search mode and open all lockers in that column
   const switchToColumn = useCallback(async (targetColumn: ColumnName) => {
-    // Only allow column switching in search mode
-    if (!searchModeActive || targetColumn === activeSearchColumn) return;
-    
-    // If we already have an active column, check if it has open lockers before allowing the switch
-    if (activeSearchColumn) {
-      try {
-        const openLockersResult = await getOpenLockers();
-        
-        if (openLockersResult.length > 0) {
-          // There are open lockers, show modal
-          setOpenLockers(openLockersResult);
-          setShowOpenLockersModal(true);
-          return;
-        }
-      } catch (error) {
-        console.error('Failed to check open lockers:', error);
-        alert('Failed to check open lockers before switching columns. Please try again.');
-        return;
-      }
-    }
-    
-    // All lockers closed or no active column, switch to selected column
+    if (!searchModeActive) return;
     setActiveSearchColumn(targetColumn);
-    
+    setOpenedSearchColumns(prev => new Set(prev).add(targetColumn));
     // Open all lockers in the selected column at once
-    // In a real application, this would trigger an API call to open all lockers in the column
     alert(`Opening all lockers in column ${targetColumn}`);
-    
-    // Mark all lockers in column as searched
     const updatedSearched = new Set(searchedLockers);
-    // Find all lockers in this column and mark them
     const columnLockers = document.querySelectorAll(`.column[data-column="${targetColumn}"] .locker`);
     columnLockers.forEach((locker: Element) => {
       const lockerId = locker.getAttribute('data-locker-id');
@@ -1401,17 +1397,16 @@ const LockerGrid: React.FC = () => {
       }
     });
     setSearchedLockers(updatedSearched);
-    
-  }, [searchModeActive, activeSearchColumn, getOpenLockers, searchedLockers]);
+  }, [searchModeActive, searchedLockers]);
   
   const renderColumnHeaders = (columnName: ColumnName) => {
-    const isActive = columnName === activeSearchColumn;
+    const isActive = openedSearchColumns.has(columnName);
     const isClickable = searchModeActive && !isActive;
     
     return (
       <Tooltip text={searchModeActive ? `Click to select column ${columnName}` : columnName} position="top">
         <div 
-          className={`column-header ${isClickable ? 'clickable-header' : ''} ${isActive ? 'active-header' : ''}`}
+          className={`column-header ${isClickable ? 'clickable-header' : ''} ${isActive ? 'active-search-column' : ''}`}
           onClick={() => isClickable && switchToColumn(columnName)}
         >
           {columnName}
@@ -1425,103 +1420,178 @@ const LockerGrid: React.FC = () => {
       <div className="grid-layout">
         <Legend onEnterSearchMode={handleEnterSearchMode} />
         <div className="content-area">
-          <div className="scrollable-wrapper">
-            <div className="grid-main">
-              {/* Search Mode Overlay Components */}
-              {searchModeActive && (
-                <>
-                  <SearchModeBanner 
-                    activeColumn={activeSearchColumn} 
-                    onCompleteSearch={completeSearch} 
-                  />
-                  <SearchModeControls 
-                    activeColumn={activeSearchColumn}
-                    onNextColumn={goToNextColumn}
-                    onCheckOpenLockers={checkOpenLockers}
-                    onCompleteSearch={completeSearch}
-                  />
-                </>
-              )}
-              
-              <div className="header-row">
-                {columns.map((col) => 
-                  renderColumnHeaders(col)
-                )}
+          {searchModeActive ? (
+            <div className="search-mode-frame">
+              <div className="search-mode-tab">
+                <span className="search-mode-label">🔍 Search Mode</span>
+                <button className="search-mode-action" onClick={checkOpenLockers}>Check Open Lockers</button>
+                <button className="search-mode-action" onClick={completeSearch}>Complete Search</button>
               </div>
-              <div className="column-row">
-                {columns.map((col) => (
-                  <div 
-                    key={`column-${col}`} 
-                    className={`column ${activeSearchColumn === col ? 'active-search-column' : ''}`}
-                    data-column={col}
-                  >
-                    {col === 'MID' ? (
-                      <>
-                        <Locker 
-                          size="L" 
-                          lockerCode="MID1" 
-                          onContextMenu={handleContextMenu}
-                          onClick={handleLockerClick}
-                          isSelected={selectedLockers.has('MID1')}
-                          isInSearchMode={searchModeActive && activeSearchColumn === 'MID'}
-                          isSearched={searchedLockers.has('MID1')}
-                          data-locker-id="MID1"
-                        />
-                        <div className="service-section">
-                          <div className="service">Service</div>
-                          <div className="steering">Steering</div>
-                        </div>
-                        <div className="small-lockers">
-                          {['MID4', 'MID5', 'MID6', 'MID7'].map(lockerId => (
-                            <Locker 
-                              key={lockerId}
-                              size="S" 
-                              lockerCode={lockerId} 
-                              onContextMenu={handleContextMenu}
-                              onClick={handleLockerClick}
-                              isSelected={selectedLockers.has(lockerId)}
-                              isInSearchMode={searchModeActive && activeSearchColumn === 'MID'}
-                              isSearched={searchedLockers.has(lockerId)}
-                              data-locker-id={lockerId}
-                            />
-                          ))}
-                        </div>
-                        <Locker 
-                          size="L" 
-                          lockerCode="MID8" 
-                          onContextMenu={handleContextMenu}
-                          onClick={handleLockerClick}
-                          isSelected={selectedLockers.has('MID8')}
-                          isInSearchMode={searchModeActive && activeSearchColumn === 'MID'}
-                          isSearched={searchedLockers.has('MID8')}
-                          data-locker-id="MID8"
-                        />
-                      </>
-                    ) : (
-                      columnLayouts[col as ColumnName].map((config, index) => (
-                        <Locker
-                          key={`${col}-${index}`}
-                          size={config.size}
-                          lockerCode={`${col}${index + 1}`}
-                          onContextMenu={handleContextMenu}
-                          onClick={handleLockerClick}
-                          isSelected={selectedLockers.has(`${col}${index + 1}`)}
-                          isEmpty={config.isEmpty}
-                          hasMultipleParcels={config.hasMultipleParcels}
-                          parcels={config.parcels}
-                          isComparison={config.isComparison}
-                          comparisonState={config.comparisonState}
-                          isInSearchMode={searchModeActive && activeSearchColumn === col}
-                          isSearched={searchedLockers.has(`${col}${index + 1}`)}
-                          data-locker-id={`${col}${index + 1}`}
-                        />
-                      ))
+              <div className="scrollable-wrapper">
+                <div className="grid-main">
+                  <div className="header-row">
+                    {columns.map((col) => 
+                      renderColumnHeaders(col)
                     )}
                   </div>
-                ))}
+                  <div className="column-row">
+                    {columns.map((col) => (
+                      <div 
+                        key={`column-${col}`} 
+                        className={`column ${openedSearchColumns.has(col) ? 'active-search-column' : ''}`}
+                        data-column={col}
+                      >
+                        {col === 'MID' ? (
+                          <>
+                            <Locker 
+                              size="L" 
+                              lockerCode="MID1" 
+                              onContextMenu={handleContextMenu}
+                              onClick={handleLockerClick}
+                              isSelected={selectedLockers.has('MID1')}
+                              isInSearchMode={searchModeActive && activeSearchColumn === 'MID'}
+                              isSearched={searchedLockers.has('MID1')}
+                              data-locker-id="MID1"
+                            />
+                            <div className="service-section">
+                              <div className="service">Service</div>
+                              <div className="steering">Steering</div>
+                            </div>
+                            <div className="small-lockers">
+                              {['MID4', 'MID5', 'MID6', 'MID7'].map(lockerId => (
+                                <Locker 
+                                  key={lockerId}
+                                  size="S" 
+                                  lockerCode={lockerId} 
+                                  onContextMenu={handleContextMenu}
+                                  onClick={handleLockerClick}
+                                  isSelected={selectedLockers.has(lockerId)}
+                                  isInSearchMode={searchModeActive && activeSearchColumn === 'MID'}
+                                  isSearched={searchedLockers.has(lockerId)}
+                                  data-locker-id={lockerId}
+                                />
+                              ))}
+                            </div>
+                            <Locker 
+                              size="L" 
+                              lockerCode="MID8" 
+                              onContextMenu={handleContextMenu}
+                              onClick={handleLockerClick}
+                              isSelected={selectedLockers.has('MID8')}
+                              isInSearchMode={searchModeActive && activeSearchColumn === 'MID'}
+                              isSearched={searchedLockers.has('MID8')}
+                              data-locker-id="MID8"
+                            />
+                          </>
+                        ) : (
+                          columnLayouts[col as ColumnName].map((config, index) => (
+                            <Locker
+                              key={`${col}-${index}`}
+                              size={config.size}
+                              lockerCode={`${col}${index + 1}`}
+                              onContextMenu={handleContextMenu}
+                              onClick={handleLockerClick}
+                              isSelected={selectedLockers.has(`${col}${index + 1}`)}
+                              isEmpty={config.isEmpty}
+                              hasMultipleParcels={config.hasMultipleParcels}
+                              parcels={config.parcels}
+                              isComparison={config.isComparison}
+                              comparisonState={config.comparisonState}
+                              isInSearchMode={searchModeActive && activeSearchColumn === col}
+                              isSearched={searchedLockers.has(`${col}${index + 1}`)}
+                              data-locker-id={`${col}${index + 1}`}
+                            />
+                          ))
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="scrollable-wrapper">
+              <div className="grid-main">
+                <div className="header-row">
+                  {columns.map((col) => 
+                    renderColumnHeaders(col)
+                  )}
+                </div>
+                <div className="column-row">
+                  {columns.map((col) => (
+                    <div 
+                      key={`column-${col}`} 
+                      className={`column ${openedSearchColumns.has(col) ? 'active-search-column' : ''}`}
+                      data-column={col}
+                    >
+                      {col === 'MID' ? (
+                        <>
+                          <Locker 
+                            size="L" 
+                            lockerCode="MID1" 
+                            onContextMenu={handleContextMenu}
+                            onClick={handleLockerClick}
+                            isSelected={selectedLockers.has('MID1')}
+                            isInSearchMode={searchModeActive && activeSearchColumn === 'MID'}
+                            isSearched={searchedLockers.has('MID1')}
+                            data-locker-id="MID1"
+                          />
+                          <div className="service-section">
+                            <div className="service">Service</div>
+                            <div className="steering">Steering</div>
+                          </div>
+                          <div className="small-lockers">
+                            {['MID4', 'MID5', 'MID6', 'MID7'].map(lockerId => (
+                              <Locker 
+                                key={lockerId}
+                                size="S" 
+                                lockerCode={lockerId} 
+                                onContextMenu={handleContextMenu}
+                                onClick={handleLockerClick}
+                                isSelected={selectedLockers.has(lockerId)}
+                                isInSearchMode={searchModeActive && activeSearchColumn === 'MID'}
+                                isSearched={searchedLockers.has(lockerId)}
+                                data-locker-id={lockerId}
+                              />
+                            ))}
+                          </div>
+                          <Locker 
+                            size="L" 
+                            lockerCode="MID8" 
+                            onContextMenu={handleContextMenu}
+                            onClick={handleLockerClick}
+                            isSelected={selectedLockers.has('MID8')}
+                            isInSearchMode={searchModeActive && activeSearchColumn === 'MID'}
+                            isSearched={searchedLockers.has('MID8')}
+                            data-locker-id="MID8"
+                          />
+                        </>
+                      ) : (
+                        columnLayouts[col as ColumnName].map((config, index) => (
+                          <Locker
+                            key={`${col}-${index}`}
+                            size={config.size}
+                            lockerCode={`${col}${index + 1}`}
+                            onContextMenu={handleContextMenu}
+                            onClick={handleLockerClick}
+                            isSelected={selectedLockers.has(`${col}${index + 1}`)}
+                            isEmpty={config.isEmpty}
+                            hasMultipleParcels={config.hasMultipleParcels}
+                            parcels={config.parcels}
+                            isComparison={config.isComparison}
+                            comparisonState={config.comparisonState}
+                            isInSearchMode={searchModeActive && activeSearchColumn === col}
+                            isSearched={searchedLockers.has(`${col}${index + 1}`)}
+                            data-locker-id={`${col}${index + 1}`}
+                          />
+                        ))
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
           
           {showDetailsTable && selectedLockers.size > 0 && (
             <div className="details-table-wrapper">
@@ -1531,7 +1601,23 @@ const LockerGrid: React.FC = () => {
         </div>
       </div>
 
-      {/* Modals */}
+      {/* Search Mode Components */}
+      {searchModeActive && (
+        <>
+          <SearchTokenModal 
+            isOpen={showTokenModal} 
+            onClose={handleTokenModalClose} 
+            onSubmit={startSearchMode}
+          />
+          
+          <OpenLockersModal 
+            isOpen={showOpenLockersModal}
+            openLockers={openLockers}
+            onClose={() => setShowOpenLockersModal(false)}
+          />
+        </>
+      )}
+      
       <SearchTokenModal 
         isOpen={showTokenModal} 
         onClose={handleTokenModalClose} 
@@ -1556,6 +1642,8 @@ const LockerGrid: React.FC = () => {
           onBlockWithClaim={handleBlockWithClaim}
           onChangeExpiration={handleChangeExpiration}
           onSeeParcelLife={handleSeeParcelLife}
+          searchModeActive={searchModeActive}
+          onOpenLocker={handleLockerOpen}
         />
       )}
       <ChangeBoxModal
@@ -1589,4 +1677,4 @@ const LockerGrid: React.FC = () => {
   );
 };
 
-export default LockerGrid;
+export default LockerGrid; 
