@@ -280,6 +280,45 @@ const ParcelLifeModal: React.FC<ParcelLifeModalProps> = ({ isOpen, onClose, parc
   );
 };
 
+interface ChangeParcelStatusModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  parcelNumber: string;
+}
+
+const ChangeParcelStatusModal: React.FC<ChangeParcelStatusModalProps> = ({ isOpen, onClose, parcelNumber }) => {
+  // Add effect to toggle body class when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.classList.remove('modal-open');
+    }
+    
+    // Cleanup function to ensure class is removed
+    return () => {
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h2>Change Parcel Status</h2>
+        <div className="modal-body">
+          <p>Parcel {parcelNumber}</p>
+          {/* Empty modal for now */}
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 interface ContextMenuProps {
   x: number;
   y: number;
@@ -292,6 +331,7 @@ interface ContextMenuProps {
   onSeeParcelLife: () => void;
   searchModeActive: boolean;
   onOpenLocker: (lockerId: string) => void;
+  onChangeParcelStatus: () => void;
 }
 
 const ContextMenu: React.FC<ContextMenuProps> = ({ 
@@ -305,7 +345,8 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   onChangeExpiration,
   onSeeParcelLife,
   searchModeActive,
-  onOpenLocker
+  onOpenLocker,
+  onChangeParcelStatus
 }) => {
   const menuStyle = {
     position: 'fixed' as const,
@@ -348,6 +389,8 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
       onChangeExpiration();
     } else if (action === 'See Parcel Life') {
       onSeeParcelLife();
+    } else if (action === 'Change Parcel Status') {
+      onChangeParcelStatus();
     }
     console.log(`${action} for locker ${lockerId}`);
     onClose();
@@ -355,7 +398,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 
   return (
     <>
-      <div style={menuStyle}>
+      <div style={menuStyle} className="ContextMenu">
         {searchModeActive && (
           <button 
             style={menuItemStyle}
@@ -446,6 +489,14 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
         >
           See parcel life
         </button>
+        <button 
+          style={menuItemStyle}
+          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+          onClick={() => handleAction('Change Parcel Status')}
+        >
+          Change parcel status
+        </button>
       </div>
       <div 
         style={{ 
@@ -454,7 +505,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
           left: 0, 
           right: 0, 
           bottom: 0, 
-          zIndex: 999 
+          zIndex: 500  // Lower z-index to ensure it's below modal overlay
         }} 
         onClick={onClose}
       />
@@ -794,6 +845,7 @@ const LockerGrid: React.FC = () => {
   const [isBlockClaimModalOpen, setIsBlockClaimModalOpen] = useState(false);
   const [isExpirationModalOpen, setIsExpirationModalOpen] = useState(false);
   const [isParcelLifeModalOpen, setIsParcelLifeModalOpen] = useState(false);
+  const [isChangeParcelStatusModalOpen, setIsChangeParcelStatusModalOpen] = useState(false);
   
   // Define columns
   const columns: ColumnName[] = ['4L', '3L', '2L', '1L', 'MID', '1R', '2R', '3R', '4R', '5R', '6R', '7R', '8R'];
@@ -1202,7 +1254,7 @@ const LockerGrid: React.FC = () => {
     }
   }, [activeSearchColumn, getOpenLockers, columns]);
 
-  // Update handleLockerClick to handle search mode clicks
+  // Update handleLockerClick to switch to Parcel Details tab when selecting a locker
   const handleLockerClick = useCallback((event: React.MouseEvent, lockerId: string) => {
     event.preventDefault();
     
@@ -1272,6 +1324,7 @@ const LockerGrid: React.FC = () => {
         return newSelection;
       });
       setShowDetailsTable(true);
+      setActiveTab('parcel'); // Switch to Parcel Details tab
     } else {
       // Single select behavior
       // If this locker or any of its parcels is already selected, deselect it
@@ -1301,6 +1354,7 @@ const LockerGrid: React.FC = () => {
         
         setSelectedLockers(newSelection);
         setShowDetailsTable(true);
+        setActiveTab('parcel'); // Switch to Parcel Details tab
       }
     }
   }, [getLockerDetails, selectedLockers, columnLayouts, searchModeActive, activeSearchColumn, handleLockerOpen]);
@@ -1381,6 +1435,14 @@ const LockerGrid: React.FC = () => {
     setIsParcelLifeModalOpen(false);
   }, []);
 
+  const handleChangeParcelStatus = useCallback(() => {
+    setIsChangeParcelStatusModalOpen(true);
+  }, []);
+
+  const handleChangeParcelStatusModalClose = useCallback(() => {
+    setIsChangeParcelStatusModalOpen(false);
+  }, []);
+
   // Function to switch to a specific column in search mode and open all lockers in that column
   const switchToColumn = useCallback(async (targetColumn: ColumnName) => {
     if (!searchModeActive) return;
@@ -1414,6 +1476,53 @@ const LockerGrid: React.FC = () => {
       </Tooltip>
     );
   };
+
+  const [activeTab, setActiveTab] = useState<'usage' | 'parcel' | 'courier'>('usage');
+
+  // Add function to calculate usage statistics
+  const calculateUsageStats = useCallback(() => {
+    const stats = {
+      total: 0,
+      bySize: {
+        S: { total: 0, busy: 0, free: 0, soiled: 0, damaged: 0, unclosed: 0, inspection: 0, verified: 0 },
+        M: { total: 0, busy: 0, free: 0, soiled: 0, damaged: 0, unclosed: 0, inspection: 0, verified: 0 },
+        L: { total: 0, busy: 0, free: 0, soiled: 0, damaged: 0, unclosed: 0, inspection: 0, verified: 0 }
+      }
+    };
+
+    // Calculate statistics from columnLayouts
+    Object.entries(columnLayouts).forEach(([col, lockers]) => {
+      lockers.forEach(locker => {
+        stats.total++;
+        stats.bySize[locker.size].total++;
+        
+        if (locker.isEmpty) {
+          stats.bySize[locker.size].free++;
+        } else if (locker.isComparison) {
+          const { apmStatus } = locker.comparisonState || {};
+          if (apmStatus?.toLowerCase().includes('soiled')) {
+            stats.bySize[locker.size].soiled++;
+          }
+          if (apmStatus?.toLowerCase().includes('damaged')) {
+            stats.bySize[locker.size].damaged++;
+          }
+          if (apmStatus?.toLowerCase().includes('unclosed')) {
+            stats.bySize[locker.size].unclosed++;
+          }
+          if (apmStatus?.toLowerCase().includes('inspection')) {
+            stats.bySize[locker.size].inspection++;
+          }
+          if (apmStatus?.toLowerCase().includes('verified')) {
+            stats.bySize[locker.size].verified++;
+          }
+        } else {
+          stats.bySize[locker.size].busy++;
+        }
+      });
+    });
+
+    return stats;
+  }, [columnLayouts]);
 
   return (
     <div className="locker-grid" onContextMenu={(e) => e.preventDefault()}>
@@ -1593,11 +1702,89 @@ const LockerGrid: React.FC = () => {
             </div>
           )}
           
-          {showDetailsTable && selectedLockers.size > 0 && (
-            <div className="details-table-wrapper">
-              <DetailsTable detailsMap={lockerDetailsRef.current} selectedLockers={Array.from(selectedLockers)} />
+          {/* Tabbed Section */}
+          <div className="tabbed-section">
+            <div className="tab-navigation">
+              <button 
+                className={`tab-button ${activeTab === 'usage' ? 'active' : ''}`}
+                onClick={() => setActiveTab('usage')}
+              >
+                Usage Report
+              </button>
+              <button 
+                className={`tab-button ${activeTab === 'parcel' ? 'active' : ''}`}
+                onClick={() => setActiveTab('parcel')}
+              >
+                Parcel Details
+              </button>
+              <button 
+                className={`tab-button ${activeTab === 'courier' ? 'active' : ''}`}
+                onClick={() => setActiveTab('courier')}
+              >
+                Courier Sessions
+              </button>
             </div>
-          )}
+
+            <div className="tab-content" style={{ display: activeTab === 'usage' ? 'block' : 'none' }}>
+              <table className="usage-report-table">
+                <thead>
+                  <tr>
+                    <th>Size</th>
+                    <th>Total</th>
+                    <th>Busy</th>
+                    <th>Free</th>
+                    <th>Soiled</th>
+                    <th>Damaged</th>
+                    <th>Unclosed</th>
+                    <th>Inspection</th>
+                    <th>Verified</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(calculateUsageStats().bySize).map(([size, stats]) => (
+                    <tr key={size}>
+                      <td>{size}</td>
+                      <td>{stats.total}</td>
+                      <td>{stats.busy}</td>
+                      <td>{stats.free}</td>
+                      <td>{stats.soiled}</td>
+                      <td>{stats.damaged}</td>
+                      <td>{stats.unclosed}</td>
+                      <td>{stats.inspection}</td>
+                      <td>{stats.verified}</td>
+                    </tr>
+                  ))}
+                  <tr className="total-row">
+                    <td>Total</td>
+                    <td>{calculateUsageStats().total}</td>
+                    <td colSpan={7}></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="tab-content" style={{ display: activeTab === 'parcel' ? 'block' : 'none' }}>
+              {selectedLockers.size > 0 ? (
+                <div className="details-table-wrapper">
+                  <DetailsTable detailsMap={lockerDetailsRef.current} selectedLockers={Array.from(selectedLockers)} />
+                </div>
+              ) : (
+                <div className="zero-state">
+                  <div className="zero-state-icon">📦</div>
+                  <div className="zero-state-text">No Parcel Selected</div>
+                  <div className="zero-state-subtext">Select a parcel to view its details</div>
+                </div>
+              )}
+            </div>
+
+            <div className="tab-content" style={{ display: activeTab === 'courier' ? 'block' : 'none' }}>
+              <div className="zero-state">
+                <div className="zero-state-icon">🚚</div>
+                <div className="zero-state-text">No Courier Sessions</div>
+                <div className="zero-state-subtext">Courier session history will be displayed here</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1644,6 +1831,7 @@ const LockerGrid: React.FC = () => {
           onSeeParcelLife={handleSeeParcelLife}
           searchModeActive={searchModeActive}
           onOpenLocker={handleLockerOpen}
+          onChangeParcelStatus={handleChangeParcelStatus}
         />
       )}
       <ChangeBoxModal
@@ -1671,6 +1859,11 @@ const LockerGrid: React.FC = () => {
       <ParcelLifeModal
         isOpen={isParcelLifeModalOpen}
         onClose={handleParcelLifeModalClose}
+        parcelNumber="663400868586300013163881"
+      />
+      <ChangeParcelStatusModal
+        isOpen={isChangeParcelStatusModalOpen}
+        onClose={handleChangeParcelStatusModalClose}
         parcelNumber="663400868586300013163881"
       />
     </div>

@@ -380,19 +380,64 @@ html, body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
+  z-index: 10000;
+  pointer-events: auto !important;
+  isolation: isolate;
+  transform: translateZ(0);
+  will-change: transform;
+  -webkit-backface-visibility: hidden;
 }
 
+/* Ensure all content is hidden beneath modal */
+body.modal-open .locker-grid {
+  filter: none; /* Remove blur effect */
+  pointer-events: none;
+}
+
+/* Ensure modal content remains interactive */
+body.modal-open .modal-overlay {
+  filter: none !important;
+  pointer-events: auto !important;
+}
+
+body.modal-open .modal-content {
+  filter: none !important;
+  pointer-events: auto !important;
+}
+
+/* Force context menu hidden when modal is showing */
+.modal-overlay ~ .ContextMenu,
+.modal-overlay + .ContextMenu,
+.modal-overlay.active .ContextMenu,
+.modal-overlay ~ * .ContextMenu {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  display: none !important;
+}
+
+/* Add a class that can be toggled when modal is shown */
+body.modal-open .ContextMenu {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  display: none !important;
+}
+
+/* Improve modal content positioning */
 .modal-content {
   background: white;
   padding: 24px;
   border-radius: 8px;
   min-width: 400px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  z-index: 10001;
+  position: relative;
+  pointer-events: auto !important;
 }
 
 .modal-content h2 {
@@ -741,6 +786,8 @@ textarea.form-control {
   align-items: flex-start;
   margin-top: 2.5rem;
   margin-right: 1.5rem;
+  position: relative;
+  z-index: 1001;
 }
 
 /* Add styles for merged headers */
@@ -1372,5 +1419,143 @@ span[class*="tooltip"],
     font-size: 0.85rem;
     padding: 3px 7px;
   }
+}
+
+/* Fix context menu z-index */
+.ContextMenu {
+  position: fixed;
+  z-index: 9999;
+}
+
+/* Handle backdrop clicks */
+.modal-overlay::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+}
+
+/* Tabbed Section Styles */
+.tabbed-section {
+  margin-top: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  width: 100%;
+}
+
+.tab-navigation {
+  display: flex;
+  border-bottom: 1px solid #e9ecef;
+  background: #f8f9fa;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.tab-button {
+  padding: 12px 24px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #495057;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-primary);
+}
+
+.tab-button:hover {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.05);
+}
+
+.tab-button.active {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+  background: white;
+}
+
+.tab-content {
+  padding: 1.5rem;
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Zero State Styles */
+.zero-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: #6c757d;
+}
+
+.zero-state-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #adb5bd;
+}
+
+.zero-state-text {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.zero-state-subtext {
+  font-size: 0.9rem;
+  color: #868e96;
+}
+
+/* Usage Report Table Styles */
+.usage-report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  font-family: var(--font-primary);
+}
+
+.usage-report-table th {
+  background: #f8f9fa;
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #495057;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.usage-report-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e9ecef;
+  color: #212529;
+}
+
+.usage-report-table tr:last-child td {
+  border-bottom: none;
+}
+
+.usage-report-table .total-row {
+  font-weight: 600;
+  background: #f8f9fa;
+}
+
+.usage-report-table .percentage {
+  color: #6c757d;
+  font-size: 0.85rem;
+  margin-left: 0.5rem;
+}
+
+/* Courier Sessions Styles */
+.courier-sessions {
+  min-height: 200px;
 }
 
