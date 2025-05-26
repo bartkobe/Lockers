@@ -1524,6 +1524,64 @@ const LockerGrid: React.FC = () => {
     return stats;
   }, [columnLayouts]);
 
+  // Sample data for Courier Sessions
+  const courierSessions = [
+    {
+      boxMachineName: 'WRO316M',
+      countryCode: 'PL',
+      documentNumber: '8390093997',
+      loginTime: '19-05-2025 08:51:28',
+      logoutTime: '19-05-2025 09:14:23',
+      sessionId: '71850',
+      comment: ''
+    },
+    {
+      boxMachineName: 'WRO316M',
+      countryCode: 'PL',
+      documentNumber: '8390093997',
+      loginTime: '19-05-2025 13:01:47',
+      logoutTime: '19-05-2025 13:04:22',
+      sessionId: '71882',
+      comment: ''
+    },
+    {
+      boxMachineName: 'WRO316M',
+      countryCode: 'PL',
+      documentNumber: '8390093997',
+      loginTime: '19-05-2025 14:19:37',
+      logoutTime: '19-05-2025 14:21:32',
+      sessionId: '71889',
+      comment: ''
+    },
+    {
+      boxMachineName: 'WRO316M',
+      countryCode: 'PL',
+      documentNumber: '8390093997',
+      loginTime: '19-05-2025 15:06:21',
+      logoutTime: '19-05-2025 15:08:07',
+      sessionId: '71904',
+      comment: ''
+    },
+    {
+      boxMachineName: 'WRO316M',
+      countryCode: 'PL',
+      documentNumber: '8390093997',
+      loginTime: '20-05-2025 08:43:25',
+      logoutTime: '20-05-2025 09:08:00',
+      sessionId: '71968',
+      comment: ''
+    },
+    {
+      boxMachineName: 'WRO316M',
+      countryCode: 'PL',
+      documentNumber: '8390093997',
+      loginTime: '20-05-2025 16:32:20',
+      logoutTime: '20-05-2025 16:48:02',
+      sessionId: '72027',
+      comment: ''
+    }
+  ];
+
   return (
     <div className="locker-grid" onContextMenu={(e) => e.preventDefault()}>
       <div className="grid-layout">
@@ -1778,11 +1836,34 @@ const LockerGrid: React.FC = () => {
             </div>
 
             <div className="tab-content" style={{ display: activeTab === 'courier' ? 'block' : 'none' }}>
-              <div className="zero-state">
-                <div className="zero-state-icon">🚚</div>
-                <div className="zero-state-text">No Courier Sessions</div>
-                <div className="zero-state-subtext">Courier session history will be displayed here</div>
-              </div>
+              <table className="courier-sessions-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th><b>Box machine name</b></th>
+                    <th><b>Country code</b></th>
+                    <th><b>Document number</b></th>
+                    <th><b><u>↓ Login time</u></b></th>
+                    <th><b>Logout time</b></th>
+                    <th><b>Session ID</b></th>
+                    <th><b>Comment</b></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {courierSessions.map((session, idx) => (
+                    <tr key={session.sessionId}>
+                      <td>{idx + 1}</td>
+                      <td>{session.boxMachineName}</td>
+                      <td>{session.countryCode}</td>
+                      <td>{session.documentNumber}</td>
+                      <td>{session.loginTime}</td>
+                      <td>{session.logoutTime}</td>
+                      <td>{session.sessionId}</td>
+                      <td><a href="#" className="see-events-link">See events</a></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
