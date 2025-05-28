@@ -3,6 +3,7 @@ import './LockerGrid.css';
 import Legend from './Legend';
 import Tooltip from './Tooltip';
 import { CourierSearch, SearchTokenModal, OpenLockersModal } from './CourierSearch';
+import GuidedParcelFlowModal from './GuidedParcelFlowModal';
 
 type LockerSize = 'S' | 'M' | 'L';
 type ColumnName = '1L' | '2L' | '3L' | '4L' | 'MID' | '1R' | '2R' | '3R' | '4R' | '5R' | '6R' | '7R' | '8R';
@@ -125,6 +126,15 @@ interface RemoveParcelModalProps {
 const RemoveParcelModal: React.FC<RemoveParcelModalProps> = ({ isOpen, onClose, onRemove }) => {
   const [reason, setReason] = useState('');
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   const handleSubmit = () => {
     onRemove(reason);
     setReason('');
@@ -169,6 +179,15 @@ interface BlockWithClaimModalProps {
 }
 
 const BlockWithClaimModal: React.FC<BlockWithClaimModalProps> = ({ isOpen, onClose, onBlock }) => {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
@@ -196,6 +215,15 @@ interface ChangeExpirationModalProps {
 
 const ChangeExpirationModal: React.FC<ChangeExpirationModalProps> = ({ isOpen, onClose, onSave, parcelNumber }) => {
   const [selectedDays, setSelectedDays] = useState(1);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   const handleSubmit = () => {
     onSave(selectedDays);
@@ -241,6 +269,15 @@ interface ParcelLifeModalProps {
 }
 
 const ParcelLifeModal: React.FC<ParcelLifeModalProps> = ({ isOpen, onClose, parcelNumber }) => {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   // Sample lifecycle events - in a real app, this would come from an API
@@ -812,6 +849,15 @@ interface ModalProps {
 }
 
 const ChangeBoxModal: React.FC<ModalProps> = ({ isOpen, onClose, onSave, parcelNumber }) => {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
@@ -845,7 +891,9 @@ const LockerGrid: React.FC = () => {
   const [isBlockClaimModalOpen, setIsBlockClaimModalOpen] = useState(false);
   const [isExpirationModalOpen, setIsExpirationModalOpen] = useState(false);
   const [isParcelLifeModalOpen, setIsParcelLifeModalOpen] = useState(false);
-  const [isChangeParcelStatusModalOpen, setIsChangeParcelStatusModalOpen] = useState(false);
+  const [isGuidedFlowModalOpen, setIsGuidedFlowModalOpen] = useState(false);
+  const [guidedFlowInitialStatus, setGuidedFlowInitialStatus] = useState<string>('');
+  const [guidedFlowLockerId, setGuidedFlowLockerId] = useState<string>('');
   
   // Define columns
   const columns: ColumnName[] = ['4L', '3L', '2L', '1L', 'MID', '1R', '2R', '3R', '4R', '5R', '6R', '7R', '8R'];
@@ -1436,12 +1484,26 @@ const LockerGrid: React.FC = () => {
   }, []);
 
   const handleChangeParcelStatus = useCallback(() => {
-    setIsChangeParcelStatusModalOpen(true);
+    // For demo, use the first selected locker or a default
+    const lockerId = Array.from(selectedLockers)[0] || '';
+    setGuidedFlowLockerId(lockerId);
+    // For demo, use a stub to get the current status (should be replaced with real data)
+    setGuidedFlowInitialStatus('Stored');
+    setIsGuidedFlowModalOpen(true);
+  }, [selectedLockers]);
+
+  const handleGuidedFlowModalClose = useCallback(() => {
+    setIsGuidedFlowModalOpen(false);
   }, []);
 
-  const handleChangeParcelStatusModalClose = useCallback(() => {
-    setIsChangeParcelStatusModalOpen(false);
-  }, []);
+  // Stub for status change execution
+  const handleExecuteStep = async (status: string, reason: string) => {
+    // TODO: Replace with real API call
+    await new Promise(res => setTimeout(res, 500));
+    // Simulate random failure for demo
+    if (Math.random() < 0.1) return { success: false, error: 'Simulated error' };
+    return { success: true };
+  };
 
   // Function to switch to a specific column in search mode and open all lockers in that column
   const switchToColumn = useCallback(async (targetColumn: ColumnName) => {
@@ -1942,10 +2004,11 @@ const LockerGrid: React.FC = () => {
         onClose={handleParcelLifeModalClose}
         parcelNumber="663400868586300013163881"
       />
-      <ChangeParcelStatusModal
-        isOpen={isChangeParcelStatusModalOpen}
-        onClose={handleChangeParcelStatusModalClose}
-        parcelNumber="663400868586300013163881"
+      <GuidedParcelFlowModal
+        isOpen={isGuidedFlowModalOpen}
+        onClose={handleGuidedFlowModalClose}
+        onExecuteStep={handleExecuteStep}
+        initialStatus={guidedFlowInitialStatus}
       />
     </div>
   );
