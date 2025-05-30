@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import './CourierSearch.css';
+// import './CourierSearch.css';
 
 export type ColumnName = '1L' | '2L' | '3L' | '4L' | 'MID' | '1R' | '2R' | '3R' | '4R' | '5R' | '6R' | '7R' | '8R';
 
@@ -22,6 +22,15 @@ const COLUMN_ORDER: ColumnName[] = ['4L', '3L', '2L', '1L', 'MID', '1R', '2R', '
 // Modal for entering search token
 export const SearchTokenModal: React.FC<SearchTokenModalProps> = ({ isOpen, onClose, onSubmit }) => {
   const [token, setToken] = useState('');
+  
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
   
   if (!isOpen) return null;
   

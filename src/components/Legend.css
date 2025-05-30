@@ -658,4 +658,17 @@ input[type="number"].form-control::-webkit-inner-spin-button {
 
 .search-mode-button:hover img {
   opacity: 0.8;
+}
+
+/* Ensure modal overlays and content are always interactive */
+.modal-overlay, .modal-content {
+  pointer-events: auto !important;
+  user-select: auto !important;
+  z-index: 10000 !important;
+}
+
+/* Remove any pointer-events: none from modal overlays/content */
+.modal-overlay[style*="pointer-events: none"],
+.modal-content[style*="pointer-events: none"] {
+  pointer-events: auto !important;
 } 

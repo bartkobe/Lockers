@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import './LockerHeader.css';
 import Tooltip from './Tooltip';
@@ -32,6 +32,23 @@ interface MapModalProps {
 }
 
 const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, address }) => {
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+          onClose();
+        }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const addressString = `${address.street} ${address.number}, ${address.city} ${address.postalCode}, ${address.country}`;
@@ -39,7 +56,7 @@ const MapModal: React.FC<MapModalProps> = ({ isOpen, onClose, address }) => {
   const mapUrl = `https://www.google.com/maps/embed/v1/place?key=YOUR_GOOGLE_MAPS_API_KEY&q=${encodedAddress}`;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={onClose} ref={modalRef} tabIndex={-1} >
       <div className="modal-content map-modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Location Map</h2>

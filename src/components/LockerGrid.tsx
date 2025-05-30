@@ -385,33 +385,15 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   onOpenLocker,
   onChangeParcelStatus
 }) => {
-  const menuStyle = {
+  // menuStyle object removed - will be handled by .ContextMenu class in CSS
+  const dynamicMenuStyle = {
     position: 'fixed' as const,
     top: y,
     left: x,
-    backgroundColor: 'white',
-    border: '1px solid #e9ecef',
-    borderRadius: '6px',
-    padding: '4px 0',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-    zIndex: 1000,
-    fontFamily: 'var(--font-primary)',
+    zIndex: 1000, // Keep z-index inline or move to CSS if static
   };
 
-  const menuItemStyle = {
-    padding: '8px 12px',
-    cursor: 'pointer',
-    fontSize: '14px',
-    color: '#212529',
-    display: 'block',
-    width: '100%',
-    textAlign: 'left' as const,
-    border: 'none',
-    backgroundColor: 'transparent',
-    fontFamily: 'inherit',
-    fontWeight: 400,
-    transition: 'all 0.2s',
-  };
+  // menuItemStyle object removed - will be handled by .context-menu-item class in CSS
 
   const handleAction = (action: string) => {
     if (action === 'Open Locker') {
@@ -435,101 +417,78 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
 
   return (
     <>
-      <div style={menuStyle} className="ContextMenu">
+      <div style={dynamicMenuStyle} className="ContextMenu">
         {searchModeActive && (
           <button 
-            style={menuItemStyle}
-            onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+            className="context-menu-item" // Added class
+            // onMouseEnter and onMouseLeave removed
             onClick={() => handleAction('Open Locker')}
           >
             Open this locker
           </button>
         )}
         <button 
-          style={menuItemStyle}
-          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+          className="context-menu-item" // Added class
           onClick={() => handleAction('Inspection On')}
         >
           Inspection on
         </button>
         <button 
-          style={menuItemStyle}
-          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+          className="context-menu-item" // Added class
           onClick={() => handleAction('Inspection Off')}
         >
           Inspection off
         </button>
         <button 
-          style={menuItemStyle}
-          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+          className="context-menu-item" // Added class
           onClick={() => handleAction('Set Damaged')}
         >
           Set damaged
         </button>
         <button 
-          style={menuItemStyle}
-          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+          className="context-menu-item" // Added class
           onClick={() => handleAction('Fix Damaged')}
         >
           Fix damaged
         </button>
         <button 
-          style={menuItemStyle}
-          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+          className="context-menu-item" // Added class
           onClick={() => handleAction('Clean Soiled')}
         >
           Clean soiled
         </button>
         <button 
-          style={menuItemStyle}
-          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+          className="context-menu-item" // Added class
           onClick={() => handleAction('Change Box')}
         >
           Change target box machine
         </button>
         <button 
-          style={menuItemStyle}
-          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+          className="context-menu-item" // Added class
           onClick={() => handleAction('Remove Parcel')}
         >
           Remove selected parcel from machine for re-sending
         </button>
         <button 
-          style={menuItemStyle}
-          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+          className="context-menu-item" // Added class
           onClick={() => handleAction('Block Claim')}
         >
           Block with claim
         </button>
         <button 
-          style={menuItemStyle}
-          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+          className="context-menu-item" // Added class
           onClick={() => handleAction('Change Expiration')}
         >
           Change expiration time
         </button>
         <button 
-          style={menuItemStyle}
-          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+          className="context-menu-item" // Added class
           onClick={() => handleAction('See Parcel Life')}
         >
           See parcel life
         </button>
         <button 
-          style={menuItemStyle}
-          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+          className="context-menu-item" // Added class
           onClick={() => handleAction('Change Parcel Status')}
         >
           Change parcel status
@@ -542,7 +501,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
           left: 0, 
           right: 0, 
           bottom: 0, 
-          zIndex: 500  // Lower z-index to ensure it's below modal overlay
+          zIndex: 500  // Ensure this is below the ContextMenu's z-index if moved to CSS
         }} 
         onClick={onClose}
       />
@@ -1931,35 +1890,21 @@ const LockerGrid: React.FC = () => {
         </div>
       </div>
 
-      {/* Search Mode Components */}
-      {searchModeActive && (
-        <>
-          <SearchTokenModal 
-            isOpen={showTokenModal} 
-            onClose={handleTokenModalClose} 
-            onSubmit={startSearchMode}
-          />
-          
-          <OpenLockersModal 
-            isOpen={showOpenLockersModal}
-            openLockers={openLockers}
-            onClose={() => setShowOpenLockersModal(false)}
-          />
-        </>
-      )}
-      
+      {/* Modals */}
       <SearchTokenModal 
         isOpen={showTokenModal} 
         onClose={handleTokenModalClose} 
         onSubmit={startSearchMode}
       />
-      
-      <OpenLockersModal 
-        isOpen={showOpenLockersModal}
-        openLockers={openLockers}
-        onClose={() => setShowOpenLockersModal(false)}
-      />
 
+      {searchModeActive && (
+        <OpenLockersModal 
+          isOpen={showOpenLockersModal}
+          openLockers={openLockers}
+          onClose={() => setShowOpenLockersModal(false)}
+        />
+      )}
+      
       {/* Existing Modals */}
       {contextMenu && (
         <ContextMenu

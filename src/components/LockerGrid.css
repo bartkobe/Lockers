@@ -81,7 +81,7 @@ html, body {
   text-align: center;
   font-weight: 600;
   font-size: 0.9rem;
-  padding: 0.5rem;
+  padding: 0.5rem; /* Adjusted padding to target ~34px height */
   color: #495057;
   border-bottom: 1px solid #e9ecef;
   white-space: nowrap;
@@ -89,60 +89,20 @@ html, body {
   flex: 0 0 120px;
 }
 
-.grid-container {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 1fr;
-  background: white;
-  border: 1px solid transparent;
-  margin: 0 0 1rem 0;
-  overflow-y: visible;
-  height: fit-content;
-  min-height: min-content;
-  width: 100%;
-  box-sizing: border-box;
-  scrollbar-width: none;
+.column-header.clickable-header {
+  cursor: pointer;
+  background-color: #f0f0f0; /* Optional: slight visual cue */
 }
 
-/* Remove all vertical scrollbars */
-* {
-  scrollbar-width: auto;
+.column-header.clickable-header:hover {
+  background-color: #e0e0e0; /* Optional: hover effect */
 }
 
-*::-webkit-scrollbar {
-  width: auto;
-}
-
-/* But keep horizontal scrollbar for grid-main */
-.grid-main::-webkit-scrollbar {
-  height: 8px;
-  display: block;
-}
-
-/* Override back any previous scrollbar settings */
-.grid-container {
-  overflow-y: visible !important;
-  scrollbar-width: none !important;
-}
-
-.grid-container::-webkit-scrollbar {
-  width: 0 !important;
-}
-
-@supports not (overflow-y: overlay) {
-  .grid-container {
-    overflow-y: visible !important;
-    margin-right: 0 !important;
-    padding-right: 0 !important;
-  }
-}
-
-.column-row {
-  display: grid;
-  grid-template-columns: repeat(13, 120px);
-  width: 1560px;
-  min-width: 1560px;
-  overflow-y: visible;
+.column-header.active-search-column {
+  background-color: var(--theme-color-6-x-light); /* A very light yellow, or a theme variable if you have one */
+  color: var(--font-color); /* Ensure text is readable */
+  box-shadow: 0 0 12px 2px var(--theme-color-6-light); /* Yellow glow */
+  border-radius: 4px; /* Optional: slight rounding to make shadow look softer */
 }
 
 .column {
@@ -374,160 +334,325 @@ html, body {
   outline-color: #1d4ed8;
 }
 
-.modal-overlay {
+.modal-overlay, .search-modal-overlay, .open-lockers-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(0, 0, 0, 0.65); /* Slightly darker overlay */
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  pointer-events: auto !important;
-  isolation: isolate;
-  transform: translateZ(0);
-  will-change: transform;
-  -webkit-backface-visibility: hidden;
+  transition: opacity 0.15s ease-in-out;
+  font-family: var(--theme-font);
 }
 
-/* Ensure all content is hidden beneath modal */
-body.modal-open .locker-grid {
-  filter: none; /* Remove blur effect */
-  pointer-events: none;
-}
-
-/* Ensure modal content remains interactive */
-body.modal-open .modal-overlay {
-  filter: none !important;
-  pointer-events: auto !important;
-}
-
-body.modal-open .modal-content {
-  filter: none !important;
-  pointer-events: auto !important;
-}
-
-/* Force context menu hidden when modal is showing */
-.modal-overlay ~ .ContextMenu,
-.modal-overlay + .ContextMenu,
-.modal-overlay.active .ContextMenu,
-.modal-overlay ~ * .ContextMenu {
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  display: none !important;
-}
-
-/* Add a class that can be toggled when modal is shown */
-body.modal-open .ContextMenu {
-  visibility: hidden !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  display: none !important;
-}
-
-/* Improve modal content positioning */
-.modal-content {
-  background: white;
-  padding: 24px;
-  border-radius: 8px;
-  min-width: 400px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  z-index: 10001;
+.modal-content, .search-modal, .open-lockers-modal {
+  background: var(--theme-color-5); /* White */
+  border-radius: 8px; /* Consistent rounded corners */
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15); /* Softer, deeper shadow */
+  min-width: 360px; /* Adjusted min-width */
+  max-width: 90vw; /* Adjusted max-width */
+  width: 480px; /* Default width, can be overridden by specific modals */
+  display: flex;
+  flex-direction: column;
   position: relative;
-  pointer-events: auto !important;
+  animation: modal-pop 0.2s cubic-bezier(.4,1.4,.6,1) 1;
+  border: 1px solid var(--theme-color-4); /* Light grey border for definition */
 }
 
-.modal-content h2 {
+@keyframes modal-pop {
+  0% { transform: scale(0.95) translateY(15px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* Ensure SearchTokenModal header is themed */
+.search-modal h2 {
   margin: 0;
-  padding: 16px;
-  border-bottom: 1px solid #e9ecef;
-  font-size: 1.25rem;
+  padding: 18px 24px;
+  font-size: 1.15rem;
   font-weight: 600;
-  color: #212529;
-  font-family: var(--font-primary);
-  letter-spacing: -0.01em;
+  color: var(--font-color-light) !important; /* White text */
+  font-family: var(--theme-font);
+  letter-spacing: normal;
+  background-color: var(--theme-color-1) !important; /* Dark grey background */
+  border-bottom: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top-left-radius: 7px;
+  border-top-right-radius: 7px;
 }
 
-.modal-body {
-  padding: 16px;
-  font-family: var(--font-primary);
+/* Fallback for other modals if the above doesn't catch all h2 */
+.modal-content h2, .open-lockers-modal h2 {
+  margin: 0;
+  padding: 18px 24px;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--font-color-light) !important; /* White text for all modal headers */
+  font-family: var(--theme-font);
+  letter-spacing: normal;
+  background-color: var(--theme-color-1) !important; /* Dark grey background for all */
+  border-bottom: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top-left-radius: 7px;
+  border-top-right-radius: 7px;
 }
 
-.modal-body p {
+.modal-shortcut { /* Style for Esc shortcut hint */
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--theme-color-3); /* Light grey text for shortcut */
+  background-color: rgba(255,255,255,0.15); /* Slightly more visible on dark header */
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--theme-color-15); /* Darker border for contrast on dark header */
+}
+
+.modal-body, .search-modal-content, .open-lockers-content {
+  padding: 24px;
+  flex-grow: 1;
+  min-height: 0;
+  font-family: var(--theme-font);
+  color: var(--font-color); /* Standard dark text color */
+}
+
+.modal-body p, .search-modal-content p, .open-lockers-content p {
   margin: 0 0 16px 0;
-  color: #666;
+  color: var(--font-color);
+  line-height: 1.6;
 }
 
+.modal-footer, .search-modal-actions, .open-lockers-modal-actions {
+  padding: 16px 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px; /* Increased gap */
+  border-top: 1px solid var(--theme-color-4); /* Light grey separator */
+  border-bottom-left-radius: 7px; /* Match parent */
+  border-bottom-right-radius: 7px;
+  background-color: var(--theme-color-5); /* White background */
+}
+
+/* More specific button styling for SearchTokenModal */
+.search-modal .search-modal-actions .btn-primary {
+  background-color: var(--primary-action-color) !important; /* Yellow */
+  color: var(--font-color) !important; /* Dark text */
+  border-color: var(--primary-action-color) !important;
+}
+.search-modal .search-modal-actions .btn-primary:hover {
+  background-color: #ffc000 !important;
+  border-color: #ffc000 !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.search-modal .search-modal-actions .btn-secondary {
+  background-color: var(--theme-color-5) !important; /* White */
+  color: var(--font-color) !important; /* Dark text */
+  border: 1px solid var(--theme-color-3) !important; /* Medium-light grey border */
+}
+.search-modal .search-modal-actions .btn-secondary:hover {
+  background-color: var(--theme-color-4) !important; /* Lightest grey background */
+  border-color: var(--theme-color-2) !important; /* Medium grey border */
+  color: var(--font-color) !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Specific button styling for OpenLockersModal */
+.open-lockers-modal .open-lockers-modal-actions .btn-primary {
+  background-color: var(--primary-action-color) !important; /* Yellow */
+  color: var(--font-color) !important; /* Dark text */
+  border-color: var(--primary-action-color) !important;
+}
+.open-lockers-modal .open-lockers-modal-actions .btn-primary:hover {
+  background-color: #ffc000 !important;
+  border-color: #ffc000 !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+/* If OpenLockersModal has a secondary button, style it here too */
+/* .open-lockers-modal .open-lockers-modal-actions .btn-secondary { ... } */
+
+/* General button theming - ensure these apply broadly but can be overridden by more specific rules above */
+.btn, .search-modal-actions button, .open-lockers-modal-actions button, .modal-footer button {
+  padding: 9px 18px; /* Adjusted padding */
+  border-radius: 6px; /* Slightly more rounded */
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s ease-in-out;
+  height: auto; /* Auto height based on padding */
+  min-width: 90px; /* Adjusted min-width */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--theme-font);
+  text-transform: none; /* Remove uppercase if any */
+}
+
+.btn-primary {
+  background-color: var(--primary-action-color) !important; /* Yellow */
+  color: var(--font-color) !important; /* Dark text for contrast */
+  border-color: var(--primary-action-color) !important;
+}
+
+.btn-primary:hover {
+  background-color: #ffc000 !important; /* Slightly darker yellow */
+  border-color: #ffc000 !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-primary:focus {
+  box-shadow: 0 0 0 0.2rem rgba(255, 203, 4, 0.3) !important; /* Yellow focus ring */
+}
+
+.btn-secondary {
+  background-color: var(--theme-color-5) !important; /* White */
+  color: var(--font-color) !important; /* Dark text */
+  border: 1px solid var(--theme-color-3) !important; /* Medium-light grey border */
+}
+
+.btn-secondary:hover {
+  background-color: var(--theme-color-4) !important; /* Lightest grey background */
+  border-color: var(--theme-color-2) !important; /* Medium grey border */
+  color: var(--font-color) !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.btn-secondary:focus {
+  box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25) !important; 
+}
+
+.btn:disabled {
+  opacity: 0.5 !important; /* Reduced opacity for disabled */
+  cursor: not-allowed !important;
+  background-color: var(--theme-color-4) !important;
+  border-color: var(--theme-color-4) !important;
+  color: var(--theme-color-2) !important;
+}
+.btn-primary:disabled {
+   background-color: var(--theme-color-6) !important; /* Yellow */
+   opacity: 0.4 !important;
+   color: var(--font-color) !important;
+}
+
+.close-button { /* For 'X' close buttons in modal headers */
+  background: none;
+  border: none;
+  font-size: 28px; /* Larger for easier click */
+  font-weight: 300; /* Lighter weight */
+  cursor: pointer;
+  color: var(--theme-color-3); /* Light grey on dark header */
+  padding: 0; /* Reset padding */
+  line-height: 1;
+  transition: color 0.2s;
+  margin-left: 12px; /* Space from title */
+}
+.close-button:hover {
+  color: var(--font-color-light); /* White on hover */
+}
+
+/* Form elements within modals - increased specificity */
+.modal-content .form-group label,
+.search-modal .search-modal-content .form-group label,
+.open-lockers-modal .open-lockers-content .form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--font-color);
+  font-size: 0.9rem;
+  font-family: var(--theme-font);
+}
+
+.modal-content .form-control,
+.search-modal .search-modal-content .form-control,
+.open-lockers-modal .open-lockers-content .form-control {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--theme-color-3);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--font-color);
+  background-color: var(--theme-color-5);
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  height: auto;
+  font-family: var(--theme-font);
+}
+
+.modal-content .form-control:focus,
+.search-modal .search-modal-content .form-control:focus,
+.open-lockers-modal .open-lockers-content .form-control:focus {
+  border-color: var(--primary-action-color) !important; /* Yellow focus border */
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(255, 203, 4, 0.3) !important; /* Yellow focus ring */
+}
+
+.modal-content .form-control::placeholder,
+.search-modal .search-modal-content .form-control::placeholder,
+.open-lockers-modal .open-lockers-content .form-control::placeholder {
+  color: var(--theme-color-3);
+}
+
+/* Fallback generic form styles (less specific) */
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
-
+.form-group:last-child {
+  margin-bottom: 0;
+}
 .form-group label {
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #495057;
-  font-family: var(--font-primary);
+  color: var(--font-color);
   font-size: 0.9rem;
+  font-family: var(--theme-font);
 }
-
 .form-control {
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
+  padding: 10px 14px;
+  border: 1px solid var(--theme-color-3);
+  border-radius: 6px;
   font-size: 0.9rem;
   line-height: 1.5;
-  color: #495057;
-  font-family: var(--font-primary);
+  color: var(--font-color);
+  background-color: var(--theme-color-5);
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  height: auto;
+  font-family: var(--theme-font);
 }
-
+.form-control:focus {
+  border-color: var(--primary-action-color); /* Yellow focus border */
+  outline: 0;
+  box-shadow: 0 0 0 0.2rem rgba(255, 203, 4, 0.3); /* Yellow focus ring */
+}
+.form-control::placeholder {
+  color: var(--theme-color-3);
+}
 textarea.form-control {
+  height: auto;
+  min-height: 100px;
   resize: vertical;
-  min-height: 80px;
+}
+input[type="number"].form-control {
+  -moz-appearance: textfield;
+}
+input[type="number"].form-control::-webkit-outer-spin-button,
+input[type="number"].form-control::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
-.btn {
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: var(--font-primary);
-  letter-spacing: -0.01em;
-}
-
-.btn-primary {
-  background-color: #007bff;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #0056b3;
-}
-
-.btn-secondary {
-  background-color: #6c757d;
-  color: white;
-}
-
-.btn-secondary:hover {
-  background-color: #5a6268;
+/* Adjustments for first form group spacing if modal header is present */
+.modal-body .form-group:first-child,
+.search-modal-content .form-group:first-child { /* Added search-modal-content */
+  margin-top: 0; /* Reset if header padding is sufficient */
 }
 
 .details-table-wrapper {
@@ -1029,8 +1154,6 @@ _::-webkit-full-page-media, _:future, :root .header-row {
 
 /* Fix for Safari float precision issues */
 .column-row, .header-row {
-  font-size: 0;
-  line-height: 0;
   letter-spacing: normal;
 }
 
@@ -1340,39 +1463,40 @@ span[class*="tooltip"],
 /* Refined Search Mode Frame and Tab styles */
 .search-mode-frame {
   position: relative;
-  border: 4px solid #4da6ff;
+  border: 2px solid var(--theme-color-1); /* Dark grey border */
   border-top-left-radius: 0;
   border-top-right-radius: 18px;
   border-bottom-right-radius: 18px;
   border-bottom-left-radius: 18px;
   padding: 0;
-  background: white;
-  box-shadow: 0 2px 12px rgba(77, 166, 255, 0.08);
-  margin: 0 0 0.5rem 0;
+  background: var(--theme-color-5); /* White background */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* Generic subtle shadow */
+  margin: 10px 0 0.5rem 0; /* 10px space above frame, tab sits on top */
+  font-family: var(--theme-font); /* Ensure theme font is applied */
 }
 
 .search-mode-tab {
   position: absolute;
-  top: -40px;
-  left: -4px;
-  background: #4da6ff;
-  color: #fff;
+  top: -36px; /* Tab height, so its bottom border aligns with frame's top */
+  left: -2px;  /* Aligns with the frame's 2px border */
+  background: var(--theme-color-1); /* Dark grey background */
+  color: var(--font-color-light); /* White text */
+  font-family: var(--theme-font);
   border-radius: 10px 10px 0 0;
   padding: 0 18px 0 14px;
   height: 36px;
   display: flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 2px 8px rgba(77, 166, 255, 0.15);
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.05), 0 2px 3px rgba(0,0,0,0.05); /* Subtle top/bottom shadow */
   font-weight: 600;
   z-index: 10;
   min-width: 210px;
-  border-bottom: 4px solid #4da6ff;
-  pointer-events: none;
+  border-bottom: 2px solid var(--theme-color-1); /* Connects tab to the frame visually */
 }
 
-.search-mode-tab > * {
-  pointer-events: auto;
+.search-mode-tab > svg {
+  margin-right: 8px;
 }
 
 .search-mode-label {
@@ -1385,27 +1509,314 @@ span[class*="tooltip"],
 }
 
 .search-mode-action {
-  background: #fff;
-  color: #4da6ff;
-  border: none;
+  background: var(--primary-action-color); /* Yellow background */
+  color: var(--font-color); /* Dark text */
+  border: 1px solid transparent; /* Cleaner look, rely on bg for definition */
   border-radius: 6px;
   padding: 4px 10px;
   font-size: 0.92rem;
   font-weight: 500;
+  font-family: var(--theme-font);
   margin-left: 2px;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
-  box-shadow: 0 1px 2px rgba(77, 166, 255, 0.08);
+  pointer-events: auto !important; /* Ensure buttons are interactive */
+  transition: background-color 0.15s, color 0.15s, box-shadow 0.15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1); /* Subtle shadow */
   outline: none;
 }
 
 .search-mode-action:hover {
-  background: #e6f3ff;
-  color: #2563eb;
-  box-shadow: 0 2px 6px rgba(77, 166, 255, 0.18);
+  background-color: #ffc000; /* Darker yellow for hover, consistent with other buttons */
+  color: var(--font-color); /* Keep dark text */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15); /* Slightly more prominent shadow */
 }
 
 @media (max-width: 700px) {
+  .search-mode-tab {
+    left: -2px; /* Adjusted for 2px frame border */
+    min-width: 140px;
+    padding: 0 8px 0 8px;
+    font-size: 0.95rem;
+  }
+  .search-mode-label {
+    font-size: 0.95rem;
+  }
+  .search-mode-action {
+    font-size: 0.85rem;
+    padding: 3px 7px;
+  }
+}
+
+/* === THEMED TABBED SECTION AND TABLE STYLES START === */
+
+/* Tabbed Section Styles */
+.tabbed-section {
+  margin-top: 1rem;
+  background: var(--theme-color-5); /* White background */
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); /* Softer shadow */
+  width: 100%;
+  font-family: var(--theme-font);
+}
+
+.tab-navigation {
+  display: flex;
+  border-bottom: 1px solid var(--theme-color-4); /* Light grey border */
+  background: var(--theme-color-5); /* White background for tabs container */
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  padding: 0 12px; /* Add some horizontal padding */
+}
+
+.tab-button {
+  padding: 14px 20px; /* Adjusted padding */
+  font-size: 0.95rem; /* Slightly larger font */
+  font-weight: 500;
+  color: var(--theme-color-2); /* Medium grey for inactive tabs */
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent; /* Thicker border for active state */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--theme-font);
+  margin-right: 4px; /* Add small margin between tabs */
+}
+
+.tab-button:hover {
+  color: var(--font-color); /* Darker grey on hover */
+  background: rgba(0,0,0,0.03); /* Subtle hover background */
+}
+
+.tab-button.active {
+  color: var(--primary-action-color); /* Yellow for active tab text */
+  font-weight: 500; /* Consistent font weight with inactive state */
+  border-bottom-color: var(--primary-action-color); /* Yellow underline */
+  background: var(--theme-color-5); /* Ensure active tab background is white */
+}
+
+.tab-content {
+  padding: 1.5rem;
+  display: none;
+  background-color: var(--theme-color-5); /* White background */
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Zero State Styles */
+.zero-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--theme-color-2); /* Medium grey text */
+  font-family: var(--theme-font);
+}
+
+.zero-state-icon {
+  font-size: 2.5rem; /* Larger icon */
+  margin-bottom: 1rem;
+  color: var(--theme-color-3); /* Lighter grey icon */
+}
+
+.zero-state-text {
+  font-size: 1.1rem; /* Slightly larger text */
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--font-color); /* Darker text for main message */
+}
+
+.zero-state-subtext {
+  font-size: 0.9rem;
+  color: var(--theme-color-2); /* Medium grey subtext */
+}
+
+/* Common Table Styles (applied to .details-table, .usage-report-table, .courier-sessions-table) */
+.details-table,
+.usage-report-table,
+.courier-sessions-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem; /* Standardized font size */
+  font-family: var(--theme-font);
+  background-color: var(--theme-color-5); /* White background */
+}
+
+.details-table th,
+.usage-report-table th,
+.courier-sessions-table th {
+  background: var(--theme-color-5); /* White background for headers */
+  padding: 12px 15px; /* Adjusted padding */
+  text-align: left;
+  font-weight: 600; /* Bolder headers */
+  color: var(--font-color); /* Dark grey header text */
+  border-bottom: 2px solid var(--theme-color-6); /* Yellow accent bottom border */
+  border-top: 1px solid var(--theme-color-4); /* Light grey top border for separation */
+}
+
+.details-table td,
+.usage-report-table td,
+.courier-sessions-table td {
+  padding: 12px 15px; /* Consistent padding */
+  border-bottom: 1px solid var(--theme-color-4); /* Light grey row separator */
+  color: var(--font-color); /* Dark grey cell text */
+  line-height: 1.4;
+  white-space: normal; /* Allow text wrapping in table cells */
+}
+
+.details-table tr:last-child td,
+.usage-report-table tr:last-child td,
+.courier-sessions-table tr:last-child td {
+  border-bottom: none; /* Remove border from last row */
+}
+
+.details-table tbody tr:hover td,
+.usage-report-table tbody tr:hover td,
+.courier-sessions-table tbody tr:hover td {
+  background-color: rgba(0,0,0,0.02); /* Very subtle hover for all table rows */
+}
+
+/* Specific to Usage Report Table */
+.usage-report-table .total-row td {
+  font-weight: 600;
+  background: var(--theme-color-5);
+  color: var(--font-color);
+  border-top: 1px solid var(--theme-color-3);
+}
+
+.usage-report-table .percentage {
+  color: var(--theme-color-2);
+  font-size: 0.85rem;
+  margin-left: 0.5rem;
+}
+
+/* Specific to Courier Sessions Table */
+.courier-sessions-table .see-events-link {
+  color: var(--secondary-action-color); /* Blue link */
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s, text-decoration 0.2s;
+}
+
+.courier-sessions-table .see-events-link:hover {
+  text-decoration: underline;
+  color: var(--primary-action-color); /* Yellow hover */
+}
+
+/* Themed Details Table Specific Adjustments */
+.details-table-container {
+  background: var(--theme-color-5);
+   /* Preserve existing overflow-x, border-radius if they don't conflict */
+}
+
+.details-table .attribute-header {
+  /* Common 'th' style should cover this mostly. */
+  /* color: var(--font-color); */ /* Covered */
+  /* font-weight: 600; */ /* Covered */
+}
+
+.details-table .value-header {
+  /* Common 'th' style should cover this mostly. */
+  /* color: var(--font-color); */ /* Covered */
+  /* font-weight: 600; */ /* Covered */
+  border-left: 1px solid var(--theme-color-4); /* Themed border */
+}
+.details-table .value-header:first-of-type {
+  border-left: none;
+}
+
+.details-table .attribute-cell {
+  color: var(--theme-color-2); /* Lighter text for attribute names */
+  font-weight: 500;
+   /* Ensure white-space from common 'td' is appropriate or override if needed */
+}
+
+.details-table .value-cell {
+  /* color: var(--font-color); */ /* Covered by common 'td' */
+  border-left: 1px solid var(--theme-color-4); /* Themed border */
+  /* max-width, overflow, text-overflow from original un-themed .details-table .value-cell can be kept if desired */
+  /* e.g., from original: max-width: 190px; overflow: hidden; text-overflow: ellipsis; */
+}
+.details-table .value-cell:first-of-type {
+  border-left: none;
+}
+
+.details-table .merged-header {
+  text-align: center;
+  /* background-color: var(--theme-color-5); */ /* Covered by common 'th' */
+  /* font-weight: 600; */ /* Covered by common 'th' */
+  /* color: var(--font-color); */ /* Covered by common 'th' */
+  /* border-bottom: 2px solid var(--theme-color-6); */ /* Covered by common 'th' */
+  border-left: 1px solid var(--theme-color-4);
+  border-right: 1px solid var(--theme-color-4);
+}
+.details-table .merged-header-group {
+    border-left: 1px solid var(--theme-color-4);
+    border-right: 1px solid var(--theme-color-4);
+    background-color: var(--theme-color-5);
+}
+
+.details-table .parcel-subheader {
+    background-color: rgba(236, 236, 236, 0.3); /* var(--theme-color-4) with alpha */
+    color: var(--font-color);
+    font-size: 0.8rem; /* Adjusted from original for better fit with theme */
+    padding: 8px 15px; /* Match themed td/th padding */
+    border-bottom: 1px solid var(--theme-color-4); /* Match themed td border */
+    border-left: 1px solid var(--theme-color-4);
+    font-weight: 500;
+}
+.details-table .parcel-subheader:first-of-type {
+  border-left: none;
+}
+
+
+/* === THEMED TABBED SECTION AND TABLE STYLES END === */
+
+/* === CONTEXT MENU STYLES START === */
+.ContextMenu {
+  /* position: fixed; -- Handled by inline style in component for dynamic positioning */
+  /* z-index: 1000; -- Also handled by inline style in component */
+  background-color: var(--theme-color-5); /* White background */
+  border: 1px solid var(--theme-color-4);   /* Light grey border (#ececec) */
+  border-radius: 6px;
+  padding: 4px 0; /* py-1 equivalent */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  font-family: var(--theme-font);
+  min-width: 280px; /* Increased min-width for longer text items */
+  list-style: none;
+}
+
+.context-menu-item {
+  display: block;
+  width: 100%;
+  padding: 8px 16px; /* py-2 px-4 equivalent */
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--font-color); /* Dark text on light background */
+  background-color: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.context-menu-item:hover,
+.context-menu-item:focus {
+  background-color: var(--primary-action-color); /* InPost Yellow */
+  color: var(--font-color); /* Dark text for contrast on yellow */
+  outline: none;
+}
+/* === CONTEXT MENU STYLES END === === */
+
+@media (max-width: 600px) {
   .search-mode-tab {
     left: -4px;
     min-width: 140px;
@@ -1421,181 +1832,75 @@ span[class*="tooltip"],
   }
 }
 
-/* Fix context menu z-index */
-.ContextMenu {
-  position: fixed;
-  z-index: 9999;
+.column.active-search-column {
+  background-color: var(--theme-color-6-light); /* Light yellow */
+  /* Applied to the container of lockers in an active search column */
+  box-shadow: 0 0 12px 6px var(--theme-color-6-light); /* Yellow glow with more spread and less transparency */
+  border: 2px solid var(--theme-color-6-light); /* Optional: A light border to define the glowing area */
+  border-radius: 6px; /* Slightly larger radius */
+  /* Add padding if you want the glow to be inset from the lockers, 
+     but this will shrink the space for lockers. 
+     Padding is likely not desired here if lockers fill the column. */
+  /* padding: 2px; */ 
+  position: relative; /* Needed for z-index to work if lockers create their own stacking contexts */
+  z-index: 0; /* Ensure it's behind lockers if they have a higher z-index, but above default content */
 }
 
-/* Handle backdrop clicks */
-.modal-overlay::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 9999;
-}
-
-/* Tabbed Section Styles */
-.tabbed-section {
-  margin-top: 1rem;
+/* === START RESTORED GRID CSS === */
+.grid-container {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  border: 1px solid transparent;
+  margin: 0 0 1rem 0;
+  overflow-y: visible;
+  height: fit-content;
+  min-height: min-content;
   width: 100%;
+  box-sizing: border-box;
+  scrollbar-width: none;
 }
 
-.tab-navigation {
-  display: flex;
-  border-bottom: 1px solid #e9ecef;
-  background: #f8f9fa;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+/* Remove all vertical scrollbars */
+* {
+  scrollbar-width: auto;
 }
 
-.tab-button {
-  padding: 12px 24px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #495057;
-  background: transparent;
-  border: none;
-  border-bottom: 2px solid transparent;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: var(--font-primary);
+*::-webkit-scrollbar {
+  width: auto;
 }
 
-.tab-button:hover {
-  color: #2563eb;
-  background: rgba(37, 99, 235, 0.05);
-}
-
-.tab-button.active {
-  color: #2563eb;
-  border-bottom-color: #2563eb;
-  background: white;
-}
-
-.tab-content {
-  padding: 1.5rem;
-  display: none;
-}
-
-.tab-content.active {
+/* But keep horizontal scrollbar for grid-main */
+.grid-main::-webkit-scrollbar {
+  height: 8px;
   display: block;
 }
 
-/* Zero State Styles */
-.zero-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1rem;
-  text-align: center;
-  color: #6c757d;
+/* Override back any previous scrollbar settings */
+.grid-container {
+  overflow-y: visible !important;
+  scrollbar-width: none !important;
 }
 
-.zero-state-icon {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  color: #adb5bd;
+.grid-container::-webkit-scrollbar {
+  width: 0 !important;
 }
 
-.zero-state-text {
-  font-size: 1rem;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
+@supports not (overflow-y: overlay) {
+  .grid-container {
+    overflow-y: visible !important;
+    margin-right: 0 !important;
+    padding-right: 0 !important;
+  }
 }
 
-.zero-state-subtext {
-  font-size: 0.9rem;
-  color: #868e96;
+.column-row {
+  display: grid;
+  grid-template-columns: repeat(13, 120px);
+  width: 1560px;
+  min-width: 1560px;
+  overflow-y: visible;
 }
-
-/* Usage Report Table Styles */
-.usage-report-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-  font-family: var(--font-primary);
-}
-
-.usage-report-table th {
-  background: #f8f9fa;
-  padding: 12px;
-  text-align: left;
-  font-weight: 600;
-  color: #495057;
-  border-bottom: 2px solid #dee2e6;
-}
-
-.usage-report-table td {
-  padding: 12px;
-  border-bottom: 1px solid #e9ecef;
-  color: #212529;
-}
-
-.usage-report-table tr:last-child td {
-  border-bottom: none;
-}
-
-.usage-report-table .total-row {
-  font-weight: 600;
-  background: #f8f9fa;
-}
-
-.usage-report-table .percentage {
-  color: #6c757d;
-  font-size: 0.85rem;
-  margin-left: 0.5rem;
-}
-
-/* Courier Sessions Styles */
-.courier-sessions {
-  min-height: 200px;
-}
-
-.courier-sessions-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-  font-family: var(--font-primary);
-  background: white;
-}
-
-.courier-sessions-table th {
-  background: #f8f9fa;
-  padding: 12px;
-  text-align: left;
-  font-weight: 600;
-  color: #495057;
-  border-bottom: 2px solid #dee2e6;
-}
-
-.courier-sessions-table td {
-  padding: 12px;
-  border-bottom: 1px solid #e9ecef;
-  color: #212529;
-}
-
-.courier-sessions-table tr:last-child td {
-  border-bottom: none;
-}
-
-.courier-sessions-table .see-events-link {
-  color: #5ca100;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.courier-sessions-table .see-events-link:hover {
-  text-decoration: underline;
-  color: #417300;
-}
+/* === END RESTORED GRID CSS === */
 

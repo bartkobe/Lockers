@@ -1,7 +1,8 @@
 import React from 'react';
-import LockerGrid from './components/LockerGrid';
-import LockerHeader from './components/LockerHeader';
 import './App.css';
+// import './styles/theme.css'; // Keep this for global theme variables and utilities
+import LockerHeader from './components/LockerHeader';
+import LockerGrid from './components/LockerGrid';
 
 function App() {
   const lockerInfo = {
@@ -21,9 +22,13 @@ function App() {
   };
 
   return (
-    <div className="App">
+    <div className="app-container"> {/* Or simply <>
+      if app-container is not providing value */}
       <LockerHeader lockerInfo={lockerInfo} />
-      <LockerGrid />
+      {/* Main content area for LockerGrid - apply padding if needed using theme.css classes */}
+      <main className="main-content-area p-20">
+        <LockerGrid />
+      </main>
     </div>
   );
 }
