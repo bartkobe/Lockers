@@ -136,6 +136,7 @@ const Legend: React.FC<LegendProps> = ({ onEnterSearchMode }) => {
   const [hoveredStatus, setHoveredStatus] = useState<string | null>(null);
   const [isChangeParcelLockerModalOpen, setIsChangeParcelLockerModalOpen] = useState(false);
   const [isChangeLockerModalOpen, setIsChangeLockerModalOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   const handleChangeLockerSearch = (data: { phone: string; openCode: string; parcelCode: string }) => {
     console.log('Searching with data:', data);
@@ -211,127 +212,36 @@ const Legend: React.FC<LegendProps> = ({ onEnterSearchMode }) => {
   ];
 
   return (
-    <div className="menu-container">
-      <div className="action-buttons">
-        <Tooltip text="Reload Locker">
-          <button 
-            className="reload-locker-button"
-            onClick={() => console.log('Reload Locker')}
-          >
-            <img src="/images/refresh-button.svg" alt="Reload Locker" />
-          </button>
-        </Tooltip>
-        
-        <Tooltip text="Change Parcel Locker (Ctrl+Shift+L)">
-          <button 
-            className="change-parcel-locker-button"
-            onClick={() => setIsChangeParcelLockerModalOpen(true)}
-          >
-            <img src="/images/change-locker.svg" alt="Change Parcel Locker" />
-          </button>
-        </Tooltip>
-        
-        <Tooltip text="Parcel Search (Ctrl+Shift+S)">
-          <button 
-            className="change-locker-button"
-            onClick={() => setIsChangeLockerModalOpen(true)}
-          >
-            <img src="/images/parcel-search.svg" alt="Parcel Search" />
-          </button>
-        </Tooltip>
-        
-        <Tooltip text="Components Remote Control (Ctrl+Shift+R)">
-          <button 
-            className="components-remote-control-button"
-            onClick={() => console.log('Components Remote Control')}
-          >
-            <img src="/images/remote_control.svg" alt="Components Remote Control" />
-          </button>
-        </Tooltip>
-        
-        <Tooltip text="Check Proximity Code (Ctrl+Shift+P)">
-          <button 
-            className="check-proximity-code-button"
-            onClick={() => console.log('Check Proximity Code')}
-          >
-            <img src="/images/128.svg" alt="Check Proximity Code" />
-          </button>
-        </Tooltip>
-        
-        <Tooltip text="Reset Machine (Ctrl+Shift+M)">
-          <button 
-            className="reset-button"
-            onClick={() => console.log('Reset Machine')}
-          >
-            <img src="/images/reset_machine.svg" alt="Reset Machine" />
-          </button>
-        </Tooltip>
-        
-        <Tooltip text="Check Connection with Machine (Ctrl+Shift+C)">
-          <button 
-            className="check-connection-machine-button"
-            onClick={() => console.log('Check Connection with Machine')}
-          >
-            <img src="/images/machine-connection.svg" alt="Check Connection with Machine" />
-          </button>
-        </Tooltip>
-        
-        <Tooltip text="Check Connection with Router (Ctrl+Shift+T)">
-          <button 
-            className="check-connection-router-button"
-            onClick={() => console.log('Check Connection with Router')}
-          >
-            <img src="/images/router-connection.svg" alt="Check Connection with Router" />
-          </button>
-        </Tooltip>
-        
-        <Tooltip text="Search Mode">
-          <button 
-            className="search-mode-button"
-            onClick={onEnterSearchMode}
-          >
-            <img src="/images/search.svg" alt="Search Mode" />
-          </button>
-        </Tooltip>
-        
-        <div className="button-placeholder"></div>
-      </div>
-
-      <div className="empty-container">
-        <div className="info-table">
-          <div className="info-pair">
-            <div className="info-header">Temperature</div>
-            <div className="info-value status-ok">24°</div>
-          </div>
-          <div className="info-pair">
-            <div className="info-header">Humidity</div>
-            <div className="info-value">-</div>
-          </div>
-          <div className="info-pair">
-            <div className="info-header">Card Ac.</div>
-            <div className="info-value status-offline">Offline</div>
-          </div>
-          <div className="info-pair">
-            <div className="info-header">R Printer</div>
-            <div className="info-value status-error">Error</div>
-          </div>
-          <div className="info-pair">
-            <div className="info-header">L Printer</div>
-            <div className="info-value">-</div>
-          </div>
+    <nav className={`sidebar-menu ${collapsed ? 'collapsed' : ''}`}>
+      <div className="sidebar-header">
+        <div className="company-logo">
+          <img src="/images/019.svg" alt="Company Logo" />
         </div>
+        <span className="company-name">Company</span>
+        <button className="dropdown-btn" aria-label="Open company menu">▼</button>
       </div>
-      
-      <div className="legend-container">
+      <div className="sidebar-section">
+        <div className="section-title">{collapsed ? 'ACT' : 'ACTIONS'}</div>
+        <ul>
+          <li><Tooltip text="Reload Locker"><button className="sidebar-item" data-label="Reload Locker" onClick={() => console.log('Reload Locker')}><img src="/images/refresh-button.svg" alt="Reload Locker" className="sidebar-icon"/> <span className="sidebar-label">Reload Locker</span></button></Tooltip></li>
+          <li><Tooltip text="Change Parcel Locker (Ctrl+Shift+L)"><button className="sidebar-item" data-label="Change Parcel Locker" onClick={() => setIsChangeParcelLockerModalOpen(true)}><img src="/images/change-locker.svg" alt="Change Parcel Locker" className="sidebar-icon"/> <span className="sidebar-label">Change Parcel Locker</span></button></Tooltip></li>
+          <li><Tooltip text="Parcel Search (Ctrl+Shift+S)"><button className="sidebar-item" data-label="Parcel Search" onClick={() => setIsChangeLockerModalOpen(true)}><img src="/images/parcel-search.svg" alt="Parcel Search" className="sidebar-icon"/> <span className="sidebar-label">Parcel Search</span></button></Tooltip></li>
+          <li><Tooltip text="Components Remote Control (Ctrl+Shift+R)"><button className="sidebar-item" data-label="Components Remote Control" onClick={() => console.log('Components Remote Control')}><img src="/images/remote_control.svg" alt="Components Remote Control" className="sidebar-icon"/> <span className="sidebar-label">Components Remote Control</span></button></Tooltip></li>
+          <li><Tooltip text="Check Proximity Code (Ctrl+Shift+P)"><button className="sidebar-item" data-label="Check Proximity Code" onClick={() => console.log('Check Proximity Code')}><img src="/images/128.svg" alt="Check Proximity Code" className="sidebar-icon"/> <span className="sidebar-label">Check Proximity Code</span></button></Tooltip></li>
+          <li><Tooltip text="Reset Machine (Ctrl+Shift+M)"><button className="sidebar-item" data-label="Reset Machine" onClick={() => console.log('Reset Machine')}><img src="/images/reset_machine.svg" alt="Reset Machine" className="sidebar-icon"/> <span className="sidebar-label">Reset Machine</span></button></Tooltip></li>
+          <li><Tooltip text="Check Connection with Machine (Ctrl+Shift+C)"><button className="sidebar-item" data-label="Check Connection with Machine" onClick={() => console.log('Check Connection with Machine')}><img src="/images/machine-connection.svg" alt="Check Connection with Machine" className="sidebar-icon"/> <span className="sidebar-label">Check Connection with Machine</span></button></Tooltip></li>
+          <li><Tooltip text="Check Connection with Router (Ctrl+Shift+T)"><button className="sidebar-item" data-label="Check Connection with Router" onClick={() => console.log('Check Connection with Router')}><img src="/images/router-connection.svg" alt="Check Connection with Router" className="sidebar-icon"/> <span className="sidebar-label">Check Connection with Router</span></button></Tooltip></li>
+          <li><Tooltip text="Search Mode"><button className="sidebar-item" data-label="Search Mode" onClick={onEnterSearchMode}><img src="/images/search.svg" alt="Search Mode" className="sidebar-icon"/> <span className="sidebar-label">Search Mode</span></button></Tooltip></li>
+        </ul>
+      </div>
+      <div className="sidebar-section">
+        <div className="section-title">{collapsed ? 'LEG' : 'LEGEND'}</div>
         <div className="legend" role="region" aria-label="Status Legend">
           <div className="legend-items">
-            {statuses.map((status, index) => (
+            {statuses.map((status) => (
               <Tooltip key={status.name} text={status.name}>
-                <div 
-                  className="legend-item"
-                  role="listitem"
-                >
-                  <div 
+                <div className="legend-item" role="listitem">
+                  <div
                     className={`legend-color ${status.hasBlackBorder ? 'unclosed' : ''} ${status.hasBorder ? 'empty' : ''}`}
                     style={{ backgroundColor: status.color }}
                     aria-hidden="true"
@@ -343,6 +253,7 @@ const Legend: React.FC<LegendProps> = ({ onEnterSearchMode }) => {
           </div>
         </div>
       </div>
+      <button className="collapse-btn" onClick={()=>setCollapsed(!collapsed)}>{collapsed ? '➡ Expand' : '⟵ Collapse'}</button>
       <ChangeParcelLockerModal
         isOpen={isChangeParcelLockerModalOpen}
         onClose={() => setIsChangeParcelLockerModalOpen(false)}
@@ -353,7 +264,7 @@ const Legend: React.FC<LegendProps> = ({ onEnterSearchMode }) => {
         onClose={() => setIsChangeLockerModalOpen(false)}
         onSearch={handleChangeLockerSearch}
       />
-    </div>
+    </nav>
   );
 };
 

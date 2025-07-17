@@ -147,7 +147,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
             fontSize: '13px',
             fontWeight: 500,
             lineHeight: 1.4,
-            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+            fontFamily: "var(--font-family-primary, 'Archivo', Arial, sans-serif)",
             letterSpacing: '-0.01em',
             whiteSpace: 'nowrap',
             pointerEvents: 'none',

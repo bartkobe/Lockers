@@ -33,7 +33,7 @@ html, body {
   display: flex;
   flex-direction: column;
   overflow: visible;
-  max-width: calc(100% - 180px); /* Account for the Legend width */
+  max-width: calc(100% - var(--sidebar-width, 320px));
   overflow-y: visible;
 }
 
@@ -737,7 +737,6 @@ input[type="number"].form-control::-webkit-inner-spin-button {
   color: #6c757d;
   font-weight: 500;
 }
-
 .details-table .value-cell {
   color: #212529;
   padding-left: 1rem;
@@ -1571,15 +1570,24 @@ span[class*="tooltip"],
 .tab-button {
   padding: 14px 20px; /* Adjusted padding */
   font-size: 0.95rem; /* Slightly larger font */
-  font-weight: 500;
+  font-weight: 400;
   color: var(--theme-color-2); /* Medium grey for inactive tabs */
   background: transparent;
   border: none;
   border-bottom: 3px solid transparent; /* Thicker border for active state */
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: var(--theme-font);
+  font-family: var(--font-family-primary, Archivo);
   margin-right: 4px; /* Add small margin between tabs */
+  position: relative;
+}
+
+.tab-button::after {
+  content: attr(data-label);
+  font-weight: 700;
+  position: absolute;
+  left: -9999px;
+  visibility: hidden;
 }
 
 .tab-button:hover {
@@ -1588,8 +1596,8 @@ span[class*="tooltip"],
 }
 
 .tab-button.active {
-  color: var(--primary-action-color); /* Yellow for active tab text */
-  font-weight: 500; /* Consistent font weight with inactive state */
+  color: var(--font-color);
+  font-weight: 700;
   border-bottom-color: var(--primary-action-color); /* Yellow underline */
   background: var(--theme-color-5); /* Ensure active tab background is white */
 }
@@ -1903,4 +1911,5 @@ span[class*="tooltip"],
   overflow-y: visible;
 }
 /* === END RESTORED GRID CSS === */
+
 

@@ -1785,18 +1785,21 @@ const LockerGrid: React.FC = () => {
           <div className="tabbed-section">
             <div className="tab-navigation">
               <button 
+                data-label="Usage Report"
                 className={`tab-button ${activeTab === 'usage' ? 'active' : ''}`}
                 onClick={() => setActiveTab('usage')}
               >
                 Usage Report
               </button>
               <button 
+                data-label="Parcel Details"
                 className={`tab-button ${activeTab === 'parcel' ? 'active' : ''}`}
                 onClick={() => setActiveTab('parcel')}
               >
                 Parcel Details
               </button>
               <button 
+                data-label="Courier Sessions"
                 className={`tab-button ${activeTab === 'courier' ? 'active' : ''}`}
                 onClick={() => setActiveTab('courier')}
               >
